@@ -3,6 +3,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useScrollAnimations } from "@/lib/useScrollAnimations";
 import { useCart } from "@/lib/cart-context";
+import { useWishlist } from "@/lib/wishlist-context";
 import type { ProductDetail } from "@/lib/productLookup";
 
 const HIGHLIGHTS = [
@@ -24,6 +25,8 @@ const SPECS = [
 export default function ProductDetailView({ product }: { product: ProductDetail }) {
   useScrollAnimations();
   const { addItem } = useCart();
+  const { isWishlisted, toggleItem } = useWishlist();
+  const wishlisted = isWishlisted(product.slug);
   const [qty, setQty] = useState(1);
   const [tab, setTab] = useState<"description" | "specs">("description");
   const [added, setAdded] = useState(false);
@@ -127,6 +130,17 @@ export default function ProductDetailView({ product }: { product: ProductDetail 
                     </svg>
                     Request Quote
                   </Link>
+                  <button
+                    type="button"
+                    className={`pdp-wishlist-btn${wishlisted ? " active" : ""}`}
+                    onClick={() => toggleItem(product)}
+                    aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
+                    aria-pressed={wishlisted}
+                  >
+                    <svg viewBox="0 0 24 24" fill={wishlisted ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                    </svg>
+                  </button>
                 </div>
               </div>
 

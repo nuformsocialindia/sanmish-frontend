@@ -6,10 +6,14 @@ import { usePathname } from "next/navigation";
 import { NAV_LINKS } from "@/lib/data";
 import { resolveHref } from "@/lib/nav";
 import { useCart } from "@/lib/cart-context";
+import { useWishlist } from "@/lib/wishlist-context";
+import { useAuth } from "@/lib/auth-context";
 
 export default function Header() {
   const pathname = usePathname();
   const { count } = useCart();
+  const { count: wishCount } = useWishlist();
+  const { user, logout } = useAuth();
   const [scrolled, setScrolled] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -52,12 +56,28 @@ export default function Header() {
             })}
           </nav>
           <div className="nav-actions">
-            <a href="#" className="link-btn desk-only nav-iconlink">
+            {user ? (
+              <button type="button" className="link-btn desk-only nav-iconlink" onClick={logout}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="8" r="5" /><path d="M20 21a8 8 0 0 0-16 0" />
+                </svg>
+                {user.name || user.mobile}
+              </button>
+            ) : (
+              <Link href="/login" className="link-btn desk-only nav-iconlink">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="8" r="5" /><path d="M20 21a8 8 0 0 0-16 0" />
+                </svg>
+                Login
+              </Link>
+            )}
+            <Link href="/wishlist" className="link-btn desk-only nav-iconlink nav-cart">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="8" r="5" /><path d="M20 21a8 8 0 0 0-16 0" />
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
               </svg>
-              Login
-            </a>
+              Wishlist
+              {wishCount > 0 && <span className="nav-cart-badge">{wishCount}</span>}
+            </Link>
             <Link href="/cart" className="link-btn desk-only nav-iconlink nav-cart">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" />
@@ -93,7 +113,23 @@ export default function Header() {
             <Link key={link.label} className={`mlink${link.href === pathname ? " active" : ""}`} href={resolveHref(link.href, pathname)} onClick={closeDrawer}>{link.label}</Link>
           ))}
           <div className="drawer-cta">
-            <a href="#" className="btn btn-ghost" onClick={closeDrawer}>Login</a>
+            {user ? (
+              <button
+                type="button"
+                className="btn btn-ghost"
+                onClick={() => {
+                  logout();
+                  closeDrawer();
+                }}
+              >
+                Logout ({user.name || user.mobile})
+              </button>
+            ) : (
+              <Link href="/login" className="btn btn-ghost" onClick={closeDrawer}>Login</Link>
+            )}
+            <Link href="/wishlist" className="btn btn-ghost" onClick={closeDrawer}>
+              Wishlist{wishCount > 0 ? ` (${wishCount})` : ""}
+            </Link>
             <Link href="/cart" className="btn btn-ghost" onClick={closeDrawer}>
               Cart{count > 0 ? ` (${count})` : ""}
             </Link>

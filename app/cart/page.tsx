@@ -110,12 +110,12 @@ export default function CartPage() {
                   Subtotal ({selectedCount} item{selectedCount === 1 ? "" : "s"}):{" "}
                   <b>{inr(selectedSubtotal)}</b>
                 </p>
-                <Link href="/contact" className="btn btn-primary" style={{ width: "100%", marginTop: 14 }}>
-                  Request Quote for Cart
+                <Link href="/checkout" className="btn btn-primary" style={{ width: "100%", marginTop: 14 }}>
+                  Proceed to Checkout
                 </Link>
                 <p className="cart-summary-note">
-                  SANMISH works on an RFQ model — submit your cart and our team will follow up with formal pricing,
-                  lead times and bulk discounts.
+                  SANMISH works on an RFQ model — submit your details at checkout and our team will follow up with
+                  formal pricing, lead times and bulk discounts.
                 </p>
               </div>
             </div>
