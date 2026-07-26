@@ -1,9 +1,11 @@
 "use client";
 import Link from "next/link";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useScrollAnimations } from "@/lib/useScrollAnimations";
 import { useCart } from "@/lib/cart-context";
 import { slugify } from "@/lib/slug";
+import { getAllProducts } from "@/lib/productLookup";
+import SimilarProductCard from "@/components/SimilarProductCard";
 
 const inr = (n: number) => "₹ " + n.toLocaleString("en-IN");
 
@@ -26,6 +28,15 @@ export default function CartPage() {
   const selectedItems = items.filter((i) => isSelected(i.slug));
   const selectedCount = selectedItems.reduce((sum, i) => sum + i.qty, 0);
   const selectedSubtotal = selectedItems.reduce((sum, i) => sum + (i.priceValue ?? 0) * i.qty, 0);
+
+  const recommended = useMemo(() => {
+    const inCart = new Set(items.map((i) => i.slug));
+    const cartCategories = new Set(items.map((i) => i.category));
+    const all = getAllProducts().filter((p) => !inCart.has(p.slug));
+    const sameCategory = all.filter((p) => cartCategories.has(p.category));
+    const rest = all.filter((p) => !cartCategories.has(p.category));
+    return [...sameCategory, ...rest].slice(0, 8);
+  }, [items]);
 
   return (
     <section className="section" style={{ paddingTop: 40 }}>
@@ -117,7 +128,42 @@ export default function CartPage() {
                   SANMISH works on an RFQ model — submit your details at checkout and our team will follow up with
                   formal pricing, lead times and bulk discounts.
                 </p>
+
+                <div className="cart-help-points">
+                  <div className="cart-help-point">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="m5 12 5 5 9-9" />
+                    </svg>
+                    <span>All sellers are document-verified before listing on SANMISH.</span>
+                  </div>
+                  <div className="cart-help-point">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="m5 12 5 5 9-9" />
+                    </svg>
+                    <span>Bulk quantities are eligible for negotiated pricing on request.</span>
+                  </div>
+                  <div className="cart-help-point">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="m5 12 5 5 9-9" />
+                    </svg>
+                    <span>Tracked dispatch and installation support across 28+ states.</span>
+                  </div>
+                </div>
               </div>
+            </div>
+          </div>
+        )}
+
+        {recommended.length > 0 && (
+          <div className="pdp-similar reveal">
+            <div className="pdp-similar-head">
+              <h2>You Might Also Like</h2>
+              <p>Add more equipment to your quotation request before checking out.</p>
+            </div>
+            <div className="pdp-similar-scroll">
+              {recommended.map((p) => (
+                <SimilarProductCard key={p.slug} product={p} />
+              ))}
             </div>
           </div>
         )}

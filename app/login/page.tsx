@@ -1,12 +1,21 @@
 "use client";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import AuthShell from "@/components/AuthShell";
 
 export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginPageInner />
+    </Suspense>
+  );
+}
+
+function LoginPageInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { login } = useAuth();
 
   const [step, setStep] = useState<"phone" | "otp" | "done">("phone");
@@ -33,7 +42,8 @@ export default function LoginPage() {
     setError("");
     login({ mobile });
     setStep("done");
-    setTimeout(() => router.push("/"), 900);
+    const next = searchParams.get("next") || "/";
+    setTimeout(() => router.push(next), 900);
   };
 
   return (

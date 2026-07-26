@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { FILTER_CATEGORIES, SUPPLIER_TYPES, BRAND_FILTERS, PRODUCT_CATALOGUE } from "@/lib/data";
 import { slugify } from "@/lib/slug";
+import { useWishlist } from "@/lib/wishlist-context";
 
 const PER_PAGE = 9;
 const inr = (n: number) => "₹ " + n.toLocaleString("en-IN");
@@ -23,6 +24,7 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 export default function ProductListing() {
+  const { isWishlisted, toggleItem } = useWishlist();
   const [cats, setCats] = useState<string[]>(
     FILTER_CATEGORIES.filter((c) => c.defaultChecked).map((c) => c.value)
   );
@@ -223,16 +225,37 @@ export default function ProductListing() {
           </div>
         ) : (
           <div className="listing-grid-products">
-            {pageItems.map((p, i) => (
+            {pageItems.map((p, i) => {
+              const slug = slugify(p.t);
+              const wishlisted = isWishlisted(slug);
+              return (
               <div key={`${p.t}-${i}`} className={`prod${view === "list" ? " list-row" : ""}`}>
+                <Link href={`/products/${slug}`} className="prod-card-link" aria-hidden="true" tabIndex={-1} />
                 <div className="prod-img">
                   <span dangerouslySetInnerHTML={{ __html: p.ic }} />
                   <span className="prod-badge">{p.b}</span>
-                  <span className="prod-verify">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="m5 12 5 5 9-9" />
+                  <button
+                    type="button"
+                    className={`prod-wishlist${wishlisted ? " active" : ""}`}
+                    aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
+                    aria-pressed={wishlisted}
+                    onClick={() =>
+                      toggleItem({
+                        slug,
+                        title: p.t,
+                        category: p.c,
+                        seller: p.s,
+                        priceLabel: inr(p.p),
+                        priceValue: p.p,
+                        badge: p.b,
+                        icon: p.ic,
+                      })
+                    }
+                  >
+                    <svg viewBox="0 0 24 24" fill={wishlisted ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
                     </svg>
-                  </span>
+                  </button>
                 </div>
                 <div className="prod-body">
                   <h3>{p.t}</h3>
@@ -251,13 +274,14 @@ export default function ProductListing() {
                       <b>{inr(p.p)}</b>
                     </div>
                     <div className="prod-actions">
-                      <Link href={`/products/${slugify(p.t)}`} className="mini-btn o">Details</Link>
+                      <Link href={`/products/${slug}`} className="mini-btn o">Details</Link>
                       <button className="mini-btn g">Get Quote</button>
                     </div>
                   </div>
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
 

@@ -13,7 +13,7 @@ export default function Header() {
   const pathname = usePathname();
   const { count } = useCart();
   const { count: wishCount } = useWishlist();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [scrolled, setScrolled] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -57,12 +57,12 @@ export default function Header() {
           </nav>
           <div className="nav-actions">
             {user ? (
-              <button type="button" className="link-btn desk-only nav-iconlink" onClick={logout}>
+              <Link href="/account" className="link-btn desk-only nav-iconlink">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="12" cy="8" r="5" /><path d="M20 21a8 8 0 0 0-16 0" />
                 </svg>
                 {user.name || user.mobile}
-              </button>
+              </Link>
             ) : (
               <Link href="/login" className="link-btn desk-only nav-iconlink">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -114,16 +114,9 @@ export default function Header() {
           ))}
           <div className="drawer-cta">
             {user ? (
-              <button
-                type="button"
-                className="btn btn-ghost"
-                onClick={() => {
-                  logout();
-                  closeDrawer();
-                }}
-              >
-                Logout ({user.name || user.mobile})
-              </button>
+              <Link href="/account" className="btn btn-ghost" onClick={closeDrawer}>
+                My Account ({user.name || user.mobile})
+              </Link>
             ) : (
               <Link href="/login" className="btn btn-ghost" onClick={closeDrawer}>Login</Link>
             )}

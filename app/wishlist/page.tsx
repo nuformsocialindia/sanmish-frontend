@@ -38,6 +38,7 @@ export default function WishlistPage() {
           <div className="prod-grid">
             {items.map((item) => (
               <div key={item.slug} className="prod">
+                <Link href={`/products/${item.slug}`} className="prod-card-link" aria-hidden="true" tabIndex={-1} />
                 <div className="prod-img">
                   <span dangerouslySetInnerHTML={{ __html: item.icon }} />
                   <span className="prod-badge">{item.badge}</span>
@@ -53,7 +54,7 @@ export default function WishlistPage() {
                   </button>
                 </div>
                 <div className="prod-body">
-                  <Link href={`/products/${item.slug}`}><h3>{item.title}</h3></Link>
+                  <h3>{item.title}</h3>
                   <div className="prod-cat">{item.category}</div>
                   <div className="prod-seller">
                     <span className="sd">

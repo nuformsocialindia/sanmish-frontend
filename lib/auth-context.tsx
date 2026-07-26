@@ -8,6 +8,7 @@ export type AuthUser = { mobile: string; name?: string };
 
 type AuthContextValue = {
   user: AuthUser | null;
+  hydrated: boolean;
   login: (user: AuthUser) => void;
   logout: () => void;
 };
@@ -38,7 +39,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = useCallback((u: AuthUser) => setUser(u), []);
   const logout = useCallback(() => setUser(null), []);
 
-  const value = useMemo(() => ({ user, login, logout }), [user, login, logout]);
+  const value = useMemo(() => ({ user, hydrated, login, logout }), [user, hydrated, login, logout]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
