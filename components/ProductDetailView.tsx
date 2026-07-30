@@ -12,9 +12,11 @@ import SimilarProductCard from "@/components/SimilarProductCard";
 const inr = (n: number) => "₹ " + n.toLocaleString("en-IN", { maximumFractionDigits: 2 });
 
 const TRUST_STRIP = [
-  { t: "Assured Delivery", icon: `<path d="M14 3h-4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2z"/><path d="M9 8H4a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h5"/><circle cx="7" cy="19" r="2"/><circle cx="17" cy="19" r="2"/>` },
-  { t: "Easy Cancellation", icon: `<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="m14 15-4 4M10 15l4 4"/>` },
-  { t: "7 Days Return", icon: `<path d="M21 8v13H3V8"/><path d="M1 3h22v5H1zM10 12h4"/>` },
+  { t: "7 Days Return Policy", icon: `<path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 3v6h6"/>` },
+  { t: "100% Original Products", icon: `<circle cx="12" cy="8" r="6"/><path d="M9 12 6 21l6-3 6 3-3-9"/>` },
+  { t: "Secure Payments", icon: `<rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>` },
+  { t: "100% Buyer Protection", icon: `<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/>` },
+  { t: "Top Brands", icon: `<circle cx="12" cy="8" r="6"/><path d="M15.5 13.5 17 21l-5-3-5 3 1.5-7.5"/>` },
 ];
 
 const SPECS = [
@@ -118,11 +120,6 @@ export default function ProductDetailView({ product }: { product: ProductDetail 
                 <div className="pdp-thumb active"><span dangerouslySetInnerHTML={{ __html: product.icon }} /></div>
                 <div className="pdp-thumb"><span dangerouslySetInnerHTML={{ __html: product.icon }} /></div>
               </div>
-              <div className="pdp-help-box">
-                <b>Need help?</b>
-                <p>Share your requirement &amp; we&rsquo;ll call you back shortly.</p>
-                <Link href="/contact" className="btn btn-ghost" style={{ width: "100%" }}>Submit Enquiry</Link>
-              </div>
             </div>
 
             <div className="pdp-info reveal d1">
@@ -158,17 +155,17 @@ export default function ProductDetailView({ product }: { product: ProductDetail 
                 <div><span className="tick">✓</span>Eligible for <b>FREE SHIPPING</b>. *T&amp;C Apply</div>
                 <div><span className="tick">✓</span>Get GST invoice and <b>save up to 18%</b> on business purchases.</div>
               </div>
-
-              <div className="pdp-trust-strip">
-                {TRUST_STRIP.map((t) => (
-                  <div key={t.t} className="pdp-trust-item">
-                    <span dangerouslySetInnerHTML={{ __html: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${t.icon}</svg>` }} />
-                    <small>{t.t}</small>
-                  </div>
-                ))}
-              </div>
             </div>
           </div>
+
+            <div className="pdp-trust-strip">
+              {TRUST_STRIP.map((t) => (
+                <div key={t.t} className="pdp-trust-item">
+                  <span dangerouslySetInnerHTML={{ __html: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${t.icon}</svg>` }} />
+                  <small>{t.t}</small>
+                </div>
+              ))}
+            </div>
 
             <div className="pdp-tabs reveal">
               <div className="pdp-tab-buttons">
@@ -176,23 +173,25 @@ export default function ProductDetailView({ product }: { product: ProductDetail 
                 <button type="button" className={tab === "specs" ? "active" : ""} onClick={() => setTab("specs")}>Specifications</button>
               </div>
 
-              {tab === "description" ? (
-                <p style={{ color: "var(--ink-soft)", maxWidth: 760, lineHeight: 1.8 }}>
-                  {product.title} from {product.seller} is listed on SANMISH as part of our {product.category} equipment
-                  catalogue. This listing is a placeholder while our full product-detail data pipeline is connected —
-                  pricing, specs and lead times shown here will be replaced with live data from the seller&rsquo;s catalogue.
-                  Reach out for a formal quotation, technical datasheet or bulk-order pricing.
-                </p>
-              ) : (
-                <div className="pdp-specs">
-                  {specs.map((row) => (
-                    <div className="spec-row" key={row.k}>
-                      <span>{row.k}</span>
-                      <span>{row.v}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
+              <div className="pdp-tab-content">
+                {tab === "description" ? (
+                  <p style={{ color: "var(--ink-soft)", maxWidth: 760, lineHeight: 1.8 }}>
+                    {product.title} from {product.seller} is listed on SANMISH as part of our {product.category} equipment
+                    catalogue. This listing is a placeholder while our full product-detail data pipeline is connected —
+                    pricing, specs and lead times shown here will be replaced with live data from the seller&rsquo;s catalogue.
+                    Reach out for a formal quotation, technical datasheet or bulk-order pricing.
+                  </p>
+                ) : (
+                  <div className="pdp-specs">
+                    {specs.map((row) => (
+                      <div className="spec-row" key={row.k}>
+                        <span>{row.k}</span>
+                        <span>{row.v}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 

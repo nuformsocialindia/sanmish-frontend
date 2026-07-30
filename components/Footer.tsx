@@ -65,7 +65,8 @@ export default function Footer() {
             <Link href={resolveHref("#services", pathname)}>Installation</Link>
             <Link href={resolveHref("#services", pathname)}>AMC Services</Link>
             <Link href={resolveHref("#services", pathname)}>Spare Parts</Link>
-            <a href="#">Help Center</a>
+            <Link href="/help-center">Help Center</Link>
+            <Link href="/shipping-returns">Shipping &amp; Returns</Link>
             <Link href={resolveHref("#footer", pathname)}>Contact Us</Link>
           </div>
 
@@ -100,9 +101,10 @@ export default function Footer() {
         <div className="foot-bottom">
           <p>© 2026 SANMISH · Clean Energy Smarter Solutions. All rights reserved.</p>
           <div className="fl">
-            <a href="#">Privacy Policy</a>
-            <a href="#">Terms of Service</a>
-            <a href="#">Legal</a>
+            <Link href="/privacy-policy">Privacy Policy</Link>
+            <Link href="/terms-of-service">Terms of Service</Link>
+            <Link href="/cookie-policy">Cookie Policy</Link>
+            <Link href="/legal">Legal</Link>
           </div>
         </div>
       </div>

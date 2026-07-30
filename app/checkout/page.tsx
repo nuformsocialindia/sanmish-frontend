@@ -24,9 +24,9 @@ export default function CheckoutPage() {
   const [refId, setRefId] = useState("");
 
   const [company, setCompany] = useState("");
-  const [contact, setContact] = useState("");
+  const [contact, setContact] = useState(user?.name ?? "");
   const [phone, setPhone] = useState(user?.mobile ? `+91 ${user.mobile}` : "");
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(user?.email ?? "");
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("");
   const [state, setState] = useState("");

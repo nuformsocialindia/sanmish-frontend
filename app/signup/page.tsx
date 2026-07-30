@@ -3,6 +3,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
+import { auth as authApi, ApiError } from "@/lib/api";
 import AuthShell from "@/components/AuthShell";
 
 export default function SignupPage() {
@@ -16,8 +17,9 @@ export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleContinue = (e: React.FormEvent) => {
+  const handleContinue = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!company.trim() || !name.trim()) {
       setError("Please fill in your business name and contact person.");
@@ -32,19 +34,39 @@ export default function SignupPage() {
       return;
     }
     setError("");
-    setStep("otp");
+    setLoading(true);
+    try {
+      await authApi.signupStart(name, email);
+      setStep("otp");
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 409) {
+        setError("An account already exists for this email. Try logging in instead.");
+      } else {
+        setError(err instanceof Error ? err.message : "Could not send OTP. Please try again.");
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleVerify = (e: React.FormEvent) => {
+  const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!/^\d{6}$/.test(otp)) {
       setError("Enter the 6-digit OTP.");
       return;
     }
     setError("");
-    login({ mobile, name });
-    setStep("done");
-    setTimeout(() => router.push("/"), 900);
+    setLoading(true);
+    try {
+      const { user } = await authApi.signupVerify(email, otp);
+      login({ ...user, mobile });
+      setStep("done");
+      setTimeout(() => router.push("/"), 900);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Invalid or expired OTP.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -85,8 +107,8 @@ export default function SignupPage() {
             <p className="auth-terms">
               By continuing, you agree to SANMISH&rsquo;s <Link href="#">Terms &amp; Conditions</Link> and <Link href="#">Privacy Policy</Link>.
             </p>
-            <button type="submit" className="btn btn-primary form-submit" style={{ width: "100%" }}>
-              Get OTP
+            <button type="submit" className="btn btn-primary form-submit" style={{ width: "100%" }} disabled={loading}>
+              {loading ? "Sending…" : "Get OTP"}
             </button>
           </form>
         )}
@@ -94,7 +116,7 @@ export default function SignupPage() {
         {step === "otp" && (
           <form onSubmit={handleVerify} noValidate>
             <h2 className="auth-step-title">Verify OTP</h2>
-            <p className="auth-step-sub">We&rsquo;ve sent a code to +91 {mobile}.</p>
+            <p className="auth-step-sub">We&rsquo;ve sent a code to {email}.</p>
             <div className="field">
               <label htmlFor="su-otp">Enter OTP <span className="req">*</span></label>
               <input
@@ -106,11 +128,10 @@ export default function SignupPage() {
                 onChange={(e) => setOtp(e.target.value.replace(/[^0-9]/g, "").slice(0, 6))}
                 autoFocus
               />
-              <span className="field-hint">Demo mode — enter any 6 digits.</span>
             </div>
             {error && <p className="auth-error">{error}</p>}
-            <button type="submit" className="btn btn-primary form-submit" style={{ width: "100%" }}>
-              Verify &amp; Create Account
+            <button type="submit" className="btn btn-primary form-submit" style={{ width: "100%" }} disabled={loading}>
+              {loading ? "Verifying…" : "Verify & Create Account"}
             </button>
             <button
               type="button"

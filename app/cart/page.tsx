@@ -7,7 +7,8 @@ import { slugify } from "@/lib/slug";
 import { getAllProducts } from "@/lib/productLookup";
 import SimilarProductCard from "@/components/SimilarProductCard";
 
-const inr = (n: number) => "₹ " + n.toLocaleString("en-IN");
+const inr = (n: number) => "₹ " + n.toLocaleString("en-IN", { maximumFractionDigits: 2 });
+const GST_RATE = 0.05;
 
 export default function CartPage() {
   useScrollAnimations();
@@ -28,6 +29,9 @@ export default function CartPage() {
   const selectedItems = items.filter((i) => isSelected(i.slug));
   const selectedCount = selectedItems.reduce((sum, i) => sum + i.qty, 0);
   const selectedSubtotal = selectedItems.reduce((sum, i) => sum + (i.priceValue ?? 0) * i.qty, 0);
+  const quoteOnlyCount = selectedItems.filter((i) => i.priceValue == null).length;
+  const baseAmount = selectedSubtotal / (1 + GST_RATE);
+  const gstAmount = selectedSubtotal - baseAmount;
 
   const recommended = useMemo(() => {
     const inCart = new Set(items.map((i) => i.slug));
@@ -110,7 +114,14 @@ export default function CartPage() {
                       <Link href={`/products/${slugify(item.title)}`}>See product</Link>
                     </div>
                   </div>
-                  <div className="cart-price">{item.priceLabel}</div>
+                  <div className="cart-price-col">
+                    <div className="cart-price">
+                      {item.priceValue != null ? inr(item.priceValue * item.qty) : "On Request"}
+                    </div>
+                    {item.priceValue != null && item.qty > 1 && (
+                      <div className="cart-price-unit">{inr(item.priceValue)} × {item.qty}</div>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
@@ -118,9 +129,34 @@ export default function CartPage() {
             <div className="cart-summary">
               <div className="cart-summary-card">
                 <p className="cart-summary-line">
-                  Subtotal ({selectedCount} item{selectedCount === 1 ? "" : "s"}):{" "}
-                  <b>{inr(selectedSubtotal)}</b>
+                  {selectedCount} item{selectedCount === 1 ? "" : "s"} selected
                 </p>
+
+                <div className="checkout-breakdown">
+                  <div className="checkout-breakdown-row">
+                    <span>Base Amount</span>
+                    <span>{inr(Math.round(baseAmount * 100) / 100)}</span>
+                  </div>
+                  <div className="checkout-breakdown-row">
+                    <span>GST (5%)</span>
+                    <span>{inr(Math.round(gstAmount * 100) / 100)}</span>
+                  </div>
+                  <div className="checkout-breakdown-row">
+                    <span>Estimated Shipping</span>
+                    <span className="free">FREE</span>
+                  </div>
+                  <div className="checkout-breakdown-row total">
+                    <span>Total</span>
+                    <span>{inr(Math.round(selectedSubtotal * 100) / 100)}</span>
+                  </div>
+                </div>
+
+                {quoteOnlyCount > 0 && (
+                  <p className="checkout-quote-note">
+                    {`${quoteOnlyCount} item${quoteOnlyCount > 1 ? "s are" : " is"} priced “On Request” — pricing for ${quoteOnlyCount > 1 ? "these" : "it"} isn’t included in the total above and will be shared separately.`}
+                  </p>
+                )}
+
                 <Link href="/checkout" className="btn btn-primary" style={{ width: "100%", marginTop: 14 }}>
                   Proceed to Checkout
                 </Link>

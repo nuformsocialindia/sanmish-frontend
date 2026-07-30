@@ -51,6 +51,7 @@ export const FEATURE_HIGHLIGHTS = [
   },
 ];
 
+
 const svgDisp = `<svg viewBox="0 0 120 120" fill="none" stroke="#3E79BD" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><rect x="38" y="20" width="44" height="80" rx="8" fill="#fff"/><rect x="48" y="32" width="24" height="18" rx="3" fill="#7BB145" stroke="none"/><circle cx="60" cy="70" r="9"/></svg>`;
 const svgComp = `<svg viewBox="0 0 120 120" fill="none" stroke="#7BB145" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><rect x="24" y="44" width="72" height="44" rx="8" fill="#fff"/><circle cx="46" cy="66" r="11"/><path d="M60 44V28h20"/><rect x="76" y="22" width="14" height="14" rx="3" fill="#fff"/></svg>`;
 const svgTank = `<svg viewBox="0 0 120 120" fill="none" stroke="#3E79BD" stroke-width="3.5"><rect x="34" y="24" width="24" height="72" rx="12" fill="#fff"/><rect x="64" y="34" width="22" height="62" rx="11" fill="#fff"/></svg>`;
@@ -317,6 +318,60 @@ export const CONTACT_FAQ = [
   { q: "I want to sell on SANMISH — where do I start?", a: "Choose \"Become a seller\" in the form, or use the Become Seller button in the top bar. Our supplier team will guide you through verification." },
   { q: "Do you support projects outside major cities?", a: "Yes. We serve 28+ states with regional teams and tracked logistics for heavy industrial equipment." },
   { q: "Can I visit your office?", a: "Absolutely — our head office is in Pune, with regional offices in Ahmedabad and Delhi NCR. Working hours are Mon–Sat, 9am–7pm IST." },
+];
+
+export const HELP_CENTER_FAQ = [
+  {
+    category: "Orders & RFQs",
+    items: [
+      { q: "How does the RFQ (Request for Quotation) process work?", a: "Add equipment to your cart or submit an enquiry from a product page. Verified sellers respond with formal pricing within 24–48 hours, which you can review and accept from My Account → Orders." },
+      { q: "Can I request quotes from multiple sellers at once?", a: "Yes — SANMISH's RFQ model is built for this. One submitted requirement can be routed to multiple verified sellers so you can compare pricing and lead times." },
+      { q: "How do I check my order status?", a: "Go to My Account → Orders and select the order. You'll see its current stage — confirmed, dispatched, out for delivery, or delivered — along with tracking details where available." },
+      { q: "Can I edit an order after placing it?", a: "Contact our support team as soon as possible with your order ID. We can usually accommodate changes before the order is dispatched by the seller." },
+    ],
+  },
+  {
+    category: "Payments & Pricing",
+    items: [
+      { q: "Are the prices shown final?", a: "Listed prices are starting prices inclusive of GST. Final pricing depends on quantity, delivery location and any specification changes, confirmed in the seller's formal quotation before you pay." },
+      { q: "Do you offer bulk / volume discounts?", a: "Yes. Most listings show tiered \"Buy more, save more\" pricing on the product page. For 21+ units, request a custom bulk quote and our team will negotiate directly with the seller on your behalf." },
+      { q: "What payment methods are accepted?", a: "We support major cards, net banking, UPI and bank transfer for confirmed orders. For large B2B purchases, our team can also arrange invoicing against a formal purchase order." },
+      { q: "Will I get a GST invoice?", a: "Yes — a GST-compliant invoice is generated automatically once your order is confirmed, and is available from My Account → Orders." },
+    ],
+  },
+  {
+    category: "Shipping & Delivery",
+    items: [
+      { q: "How long does delivery take?", a: "Most standard equipment ships in 7–14 business days; the exact estimate is shown on each product page. Made-to-order or bulk equipment may take longer, confirmed at quotation." },
+      { q: "Do you deliver outside major cities?", a: "Yes — we deliver across 28+ states with tracked dispatch, including semi-urban and industrial zones. Enter your pincode on the product page to confirm serviceability." },
+      { q: "Is installation included?", a: "Some listings include installation support; this is indicated on the product page. Where it isn't, our team can help you arrange certified installation and commissioning separately." },
+    ],
+  },
+  {
+    category: "Returns, Cancellations & Warranty",
+    items: [
+      { q: "What is your return policy?", a: "Eligible equipment (marked \"7 Days Return Policy\" on the listing) can be returned within 7 days of delivery if unused and in original packaging. See our full Shipping & Returns Policy for exclusions." },
+      { q: "Can I cancel an order?", a: "Yes, free of charge before dispatch from My Account → Orders. Once shipped, cancellation may involve a logistics fee or no longer be possible for made-to-order items." },
+      { q: "What if my equipment arrives damaged?", a: "Report it within 48 hours with photos via My Account → Orders → Report an Issue. We coordinate a replacement, repair or refund with the seller at no cost to you." },
+      { q: "How do warranty claims work?", a: "Contact SANMISH support with your order ID and issue description — we route the claim to the manufacturer and follow up until it's resolved." },
+    ],
+  },
+  {
+    category: "Becoming a Seller",
+    items: [
+      { q: "How do I list my products on SANMISH?", a: "Click \"Become Seller\" in the header and submit your business and product details. Our supplier team reviews documentation and verifies your listing before it goes live." },
+      { q: "What documents are required for seller verification?", a: "Typically GST registration, business incorporation proof, and relevant product certifications (e.g. PESO approval for gas equipment). Our team will confirm the exact list for your category." },
+      { q: "How long does seller verification take?", a: "Most applications are reviewed within 3–5 business days, provided all required documents are submitted." },
+    ],
+  },
+  {
+    category: "Account & Security",
+    items: [
+      { q: "How do I log in?", a: "SANMISH uses passwordless login — enter your registered email and we'll send a one-time code (OTP) to verify it's you." },
+      { q: "I didn't receive my OTP — what should I do?", a: "Check your spam folder first. If it still hasn't arrived after a couple of minutes, use \"Change email address\" to re-request the code, or contact support if the issue persists." },
+      { q: "How do I delete my account?", a: "Contact our support team or refer to our Privacy Policy for the account deletion process and what happens to your data." },
+    ],
+  },
 ];
 
 // ============================================================

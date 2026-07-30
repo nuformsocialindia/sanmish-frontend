@@ -54,7 +54,7 @@ export default function AccountShell({ children }: { children: ReactNode }) {
     );
   }
 
-  const initials = (user.name || user.mobile).slice(0, 2).toUpperCase();
+  const initials = (user.name || user.email).slice(0, 2).toUpperCase();
 
   return (
     <section className="section" style={{ paddingTop: 40 }}>
@@ -73,7 +73,7 @@ export default function AccountShell({ children }: { children: ReactNode }) {
               <div className="account-avatar">{initials}</div>
               <div>
                 <b>{user.name || "SANMISH Buyer"}</b>
-                <span>+91 {user.mobile}</span>
+                <span>{user.email}</span>
               </div>
             </div>
             <nav className="account-nav">

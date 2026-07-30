@@ -3,6 +3,7 @@ import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
+import { auth as authApi, ApiError } from "@/lib/api";
 import AuthShell from "@/components/AuthShell";
 
 export default function LoginPage() {
@@ -18,32 +19,53 @@ function LoginPageInner() {
   const searchParams = useSearchParams();
   const { login } = useAuth();
 
-  const [step, setStep] = useState<"phone" | "otp" | "done">("phone");
-  const [mobile, setMobile] = useState("");
+  const [step, setStep] = useState<"email" | "otp" | "done">("email");
+  const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleGetOtp = (e: React.FormEvent) => {
+  const handleGetOtp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!/^\d{10}$/.test(mobile)) {
-      setError("Enter a valid 10-digit mobile number.");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setError("Enter a valid email address.");
       return;
     }
     setError("");
-    setStep("otp");
+    setLoading(true);
+    try {
+      await authApi.loginStart(email);
+      setStep("otp");
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 404) {
+        setError("No account found for this email. Try signing up instead.");
+      } else {
+        setError(err instanceof Error ? err.message : "Could not send OTP. Please try again.");
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleVerify = (e: React.FormEvent) => {
+  const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!/^\d{6}$/.test(otp)) {
       setError("Enter the 6-digit OTP.");
       return;
     }
     setError("");
-    login({ mobile });
-    setStep("done");
-    const next = searchParams.get("next") || "/";
-    setTimeout(() => router.push(next), 900);
+    setLoading(true);
+    try {
+      const { user } = await authApi.loginVerify(email, otp);
+      login(user);
+      setStep("done");
+      const next = searchParams.get("next") || "/";
+      setTimeout(() => router.push(next), 900);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Invalid or expired OTP.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -53,19 +75,18 @@ function LoginPageInner() {
       subtext="Access RFQs, orders, wishlists and verified supplier quotations — all in one place."
     >
       <div className="auth-card">
-        {step === "phone" && (
+        {step === "email" && (
           <form onSubmit={handleGetOtp} noValidate>
             <h2 className="auth-step-title">Login to your account</h2>
-            <p className="auth-step-sub">Enter your registered mobile number to continue.</p>
+            <p className="auth-step-sub">Enter your registered email address to continue.</p>
             <div className="field">
-              <label htmlFor="login-mobile">Mobile Number <span className="req">*</span></label>
+              <label htmlFor="login-email">Email Address <span className="req">*</span></label>
               <input
-                id="login-mobile"
-                type="tel"
-                inputMode="numeric"
-                placeholder="10-digit mobile number"
-                value={mobile}
-                onChange={(e) => setMobile(e.target.value.replace(/[^0-9]/g, "").slice(0, 10))}
+                id="login-email"
+                type="email"
+                placeholder="you@company.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 autoFocus
               />
             </div>
@@ -73,8 +94,8 @@ function LoginPageInner() {
             <p className="auth-terms">
               By continuing, you agree to SANMISH&rsquo;s <Link href="#">Terms &amp; Conditions</Link>.
             </p>
-            <button type="submit" className="btn btn-primary form-submit" style={{ width: "100%" }}>
-              Get OTP
+            <button type="submit" className="btn btn-primary form-submit" style={{ width: "100%" }} disabled={loading}>
+              {loading ? "Sending…" : "Get OTP"}
             </button>
           </form>
         )}
@@ -82,7 +103,7 @@ function LoginPageInner() {
         {step === "otp" && (
           <form onSubmit={handleVerify} noValidate>
             <h2 className="auth-step-title">Verify OTP</h2>
-            <p className="auth-step-sub">We&rsquo;ve sent a code to +91 {mobile}.</p>
+            <p className="auth-step-sub">We&rsquo;ve sent a code to {email}.</p>
             <div className="field">
               <label htmlFor="login-otp">Enter OTP <span className="req">*</span></label>
               <input
@@ -94,22 +115,21 @@ function LoginPageInner() {
                 onChange={(e) => setOtp(e.target.value.replace(/[^0-9]/g, "").slice(0, 6))}
                 autoFocus
               />
-              <span className="field-hint">Demo mode — enter any 6 digits.</span>
             </div>
             {error && <p className="auth-error">{error}</p>}
-            <button type="submit" className="btn btn-primary form-submit" style={{ width: "100%" }}>
-              Verify &amp; Continue
+            <button type="submit" className="btn btn-primary form-submit" style={{ width: "100%" }} disabled={loading}>
+              {loading ? "Verifying…" : "Verify & Continue"}
             </button>
             <button
               type="button"
               className="auth-linkbtn"
               onClick={() => {
-                setStep("phone");
+                setStep("email");
                 setOtp("");
                 setError("");
               }}
             >
-              Change mobile number
+              Change email address
             </button>
           </form>
         )}

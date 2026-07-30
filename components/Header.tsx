@@ -61,7 +61,7 @@ export default function Header() {
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="12" cy="8" r="5" /><path d="M20 21a8 8 0 0 0-16 0" />
                 </svg>
-                {user.name || user.mobile}
+                {user.name || user.email}
               </Link>
             ) : (
               <Link href="/login" className="link-btn desk-only nav-iconlink">
@@ -115,7 +115,7 @@ export default function Header() {
           <div className="drawer-cta">
             {user ? (
               <Link href="/account" className="btn btn-ghost" onClick={closeDrawer}>
-                My Account ({user.name || user.mobile})
+                My Account ({user.name || user.email})
               </Link>
             ) : (
               <Link href="/login" className="btn btn-ghost" onClick={closeDrawer}>Login</Link>

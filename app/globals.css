@@ -2168,6 +2168,44 @@ ul { list-style: none; }
 .pg-head h1 { font-size: clamp(1.9rem,3.6vw,2.7rem); font-weight: 800; margin: 14px 0 10px; }
 .pg-head p { color: var(--ink-soft); font-size: 1.02rem; }
 
+/* ---------- Legal pages (Privacy / Terms / Legal) ---------- */
+.legal-updated {
+  display: inline-block; margin-top: 18px; font-size: .82rem; font-weight: 600;
+  color: var(--blue); background: var(--grad-soft); padding: 6px 14px; border-radius: 100px;
+}
+.legal-layout { display: grid; grid-template-columns: 260px 1fr; gap: 48px; align-items: start; }
+.legal-layout > * { min-width: 0; }
+
+.legal-toc {
+  position: sticky; top: 96px; display: flex; flex-direction: column; gap: 2px;
+  border-left: 2px solid var(--line); padding-left: 18px;
+}
+.legal-toc b { font-size: .8rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin-bottom: 10px; }
+.legal-toc a { font-size: .88rem; color: var(--ink-soft); padding: 6px 0; transition: color .2s; }
+.legal-toc a:hover { color: var(--blue); }
+
+.legal-content { max-width: 760px; }
+.legal-section { padding-bottom: 32px; margin-bottom: 32px; border-bottom: 1px solid var(--line); scroll-margin-top: 96px; }
+.legal-section:last-of-type { border-bottom: none; margin-bottom: 0; }
+.legal-section h2 { font-size: 1.25rem; font-weight: 800; margin-bottom: 14px; }
+.legal-section p { color: var(--ink-soft); line-height: 1.8; margin-bottom: 14px; }
+.legal-section p:last-child { margin-bottom: 0; }
+.legal-section ul { color: var(--ink-soft); line-height: 1.8; margin: 0 0 14px; padding-left: 22px; }
+.legal-section ul:last-child { margin-bottom: 0; }
+.legal-section li { margin-bottom: 6px; }
+
+.legal-contact-box {
+  margin-top: 12px; padding: 28px; border-radius: var(--radius); background: var(--gray); text-align: center;
+}
+.legal-contact-box b { display: block; font-size: 1.05rem; margin-bottom: 6px; }
+.legal-contact-box p { color: var(--muted); margin-bottom: 18px; }
+
+@media (max-width: 900px) {
+  .legal-layout { grid-template-columns: 1fr; }
+  .legal-toc { position: static; border-left: none; padding-left: 0; flex-direction: row; flex-wrap: wrap; gap: 8px 16px; }
+  .legal-toc b { width: 100%; margin-bottom: 4px; }
+}
+
 /* ---------- Listing layout ---------- */
 .listing-section { padding: 36px 0 96px; }
 .listing-grid { display: grid; grid-template-columns: 272px 1fr; gap: 32px; align-items: start; }
@@ -2502,22 +2540,26 @@ input[type=range].f-slider::-webkit-slider-thumb { -webkit-appearance: none; wid
 .pdp-main { flex: 1 1 480px; }
 .pdp-buybox { flex: 0 0 340px; position: sticky; top: 96px; }
 
-.pdp-top-grid { display: grid; grid-template-columns: 300px 1fr; gap: 36px; }
+.pdp-top-grid { display: grid; grid-template-columns: 400px 1fr; gap: 36px; }
 .pdp-top-grid > * { min-width: 0; }
-.pdp-tabs { margin-top: 56px; }
+.pdp-tabs { margin-top: 32px; }
+/* Stable height regardless of which tab is active, so switching tabs never
+   changes this column's total height — that reflow was what made the sticky
+   buy box beside it appear to jump/resize when it never actually changed. */
+.pdp-tab-content { min-height: 220px; }
 
 @media (max-width: 1180px) {
   .pdp-main { flex-basis: 100%; }
-  .pdp-top-grid { grid-template-columns: 260px 1fr; }
+  .pdp-top-grid { grid-template-columns: 320px 1fr; }
   .pdp-buybox { flex-basis: 100%; position: static; }
 }
 @media (max-width: 900px) {
   .pdp-top-grid { grid-template-columns: 1fr; }
 }
 
-.pdp-gallery { display: flex; flex-direction: column; gap: 14px; }
-.pdp-gallery .pdp-gallery-main { height: 260px; }
-.pdp-gallery .pdp-gallery-main > span:first-child { width: 58%; height: 58%; }
+.pdp-gallery { display: flex; flex-direction: column; gap: 16px; }
+.pdp-gallery .pdp-gallery-main { height: auto; aspect-ratio: 1 / 1; }
+.pdp-gallery .pdp-gallery-main > span:first-child { width: 78%; height: 78%; }
 .pdp-thumbs { display: flex; gap: 10px; }
 .pdp-thumb {
   width: 56px; height: 56px; border-radius: 12px; border: 1.5px solid var(--line);
@@ -2526,9 +2568,6 @@ input[type=range].f-slider::-webkit-slider-thumb { -webkit-appearance: none; wid
 }
 .pdp-thumb svg { width: 60%; height: 60%; }
 .pdp-thumb.active, .pdp-thumb:hover { border-color: var(--blue); }
-.pdp-help-box { border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 16px; background: var(--gray); }
-.pdp-help-box b { font-size: .88rem; display: block; margin-bottom: 4px; }
-.pdp-help-box p { font-size: .8rem; color: var(--muted); margin-bottom: 12px; }
 
 .pdp-rating { display: inline-flex; align-items: center; gap: 4px; margin-left: 6px; font-size: .82rem; font-weight: 700; color: #b8860b; }
 .pdp-rating svg { width: 13px; height: 13px; }
@@ -2544,11 +2583,13 @@ input[type=range].f-slider::-webkit-slider-thumb { -webkit-appearance: none; wid
 .pdp-offers { display: flex; flex-direction: column; gap: 8px; font-size: .88rem; color: var(--ink-soft); margin-bottom: 22px; }
 .pdp-offers .tick { color: var(--green-d); font-weight: 700; margin-right: 6px; }
 
-.pdp-trust-strip { display: flex; gap: 28px; padding: 20px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); margin-bottom: 26px; flex-wrap: wrap; }
-.pdp-trust-item { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; width: 96px; }
-.pdp-trust-item span { width: 40px; height: 40px; border-radius: 50%; background: var(--grad-soft); display: grid; place-items: center; color: var(--blue); }
-.pdp-trust-item svg { width: 20px; height: 20px; }
-.pdp-trust-item small { font-size: .74rem; font-weight: 600; color: var(--ink-soft); }
+/* clamp()-based fluid sizing — always stays on one line at any viewport
+   width instead of relying on a breakpoint to switch to wrapping. */
+.pdp-trust-strip { display: flex; flex-wrap: nowrap; gap: clamp(4px, 2vw, 14px); padding: 22px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); margin-top: 24px; }
+.pdp-trust-item { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; flex: 1 1 0; min-width: 0; }
+.pdp-trust-item span { width: clamp(32px, 9vw, 48px); height: clamp(32px, 9vw, 48px); border-radius: 50%; background: var(--grad-soft); display: grid; place-items: center; color: var(--blue); flex-shrink: 0; }
+.pdp-trust-item svg { width: clamp(14px, 4vw, 22px); height: clamp(14px, 4vw, 22px); }
+.pdp-trust-item small { font-size: clamp(.56rem, 1.8vw, .7rem); font-weight: 600; color: var(--ink-soft); line-height: 1.25; }
 
 /* Buy box (right rail) */
 .pdp-buybox { border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; background: #fff; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; position: sticky; top: 96px; }
@@ -2646,7 +2687,9 @@ input[type=range].f-slider::-webkit-slider-thumb { -webkit-appearance: none; wid
 .cart-sep { color: var(--line); }
 .cart-remove { background: none; border: none; color: var(--muted); font-size: .84rem; font-weight: 600; cursor: pointer; }
 .cart-remove:hover { color: #d9534f; }
+.cart-price-col { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
 .cart-price { font-family: 'Poppins'; font-weight: 800; font-size: 1.15rem; color: var(--ink); white-space: nowrap; }
+.cart-price-unit { font-size: .76rem; color: var(--muted); white-space: nowrap; }
 /* align-self:stretch gives the sticky card room to follow the scroll for the
    full height of the (taller) item list, instead of being boxed into its own
    content height and left behind as soon as the page scrolls past it. */
