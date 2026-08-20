@@ -24,6 +24,7 @@ type Product = Record<string, unknown> & {
   basePrice?: number; gstAmount?: number; grandTotal?: number; discountPercent?: number;
   quoteOnly?: boolean; isFeatured?: boolean; isTrending?: boolean; fuelType?: string;
   priceSlabs?: Slab[]; minOrderQty?: number; qtyStep?: number; maxOrderQty?: number; slabTailRequiresQuote?: boolean;
+  trustBadges?: { label: string; icon: string }[] | null;
   category?: { id: string; name: string } | null;
   vendor?: { id: string; businessName: string } | null;
   brand?: { id: string; name: string } | null;
@@ -43,6 +44,25 @@ const TABS = [
 const FUEL_TYPES = ["CNG", "CBG", "BIO_GAS", "HYDROGEN", "MULTI_FUEL"] as const;
 const GST_RATES = [0, 5, 12, 18, 28];
 const BADGE_OPTIONS = ["Bestseller", "New arrival", "Featured", "Trending", "Turnkey", "Certified"];
+// Icon keys match the storefront's whitelisted TRUST_ICON_LIBRARY
+// (components/ProductDetailView.tsx) — admins pick a key, never raw markup.
+const TRUST_ICON_OPTIONS = [
+  { key: "RETURN", label: "Return arrow" },
+  { key: "ORIGINAL", label: "Ribbon" },
+  { key: "PAYMENT", label: "Lock" },
+  { key: "PROTECTION", label: "Shield" },
+  { key: "BRAND", label: "Medal" },
+  { key: "SHIPPING", label: "Delivery truck" },
+  { key: "STAR", label: "Star" },
+  { key: "CHECK", label: "Checkmark" },
+];
+const DEFAULT_TRUST_BADGES = [
+  { label: "7 Days Return Policy", icon: "RETURN" },
+  { label: "100% Original Products", icon: "ORIGINAL" },
+  { label: "Secure Payments", icon: "PAYMENT" },
+  { label: "100% Buyer Protection", icon: "PROTECTION" },
+  { label: "Top Brands", icon: "BRAND" },
+];
 
 function gstPreview(sellingPrice: number, gstApplicable: boolean, gstRate: number, priceIncludesGst: boolean, mrp: number) {
   let basePrice = sellingPrice, gstAmount = 0;
@@ -64,6 +84,7 @@ const emptyForm = () => ({
   returnWindowDays: "0", grossWeightKg: "", dimL: "", dimW: "", dimH: "", warrantyText: "",
   installationOffered: false, amcAvailable: false, badges: "", ribbonTextOverride: "", isFeatured: false, isTrending: false,
   metaTitle: "", metaDescription: "", metaKeywords: "", canonicalUrl: "",
+  trustBadges: null as { label: string; icon: string }[] | null,
 });
 
 export default function AdminProductsPage() {
@@ -174,6 +195,7 @@ export default function AdminProductsPage() {
       badges: Array.isArray(p.badges) ? (p.badges as string[]).join(", ") : "", ribbonTextOverride: String(p.ribbonTextOverride ?? ""),
       isFeatured: Boolean(p.isFeatured), isTrending: Boolean(p.isTrending),
       metaTitle: String(p.metaTitle ?? ""), metaDescription: String(p.metaDescription ?? ""), metaKeywords: String(p.metaKeywords ?? ""), canonicalUrl: String(p.canonicalUrl ?? ""),
+      trustBadges: Array.isArray(p.trustBadges) ? (p.trustBadges as { label: string; icon: string }[]) : null,
     });
     setHsnLookupMsg("");
     setPendingImages([]);
@@ -205,6 +227,13 @@ export default function AdminProductsPage() {
   const updateSlab = (i: number, patch: Partial<Slab>) =>
     setForm((f) => ({ ...f, priceSlabs: f.priceSlabs.map((s, idx) => (idx === i ? { ...s, ...patch } : s)) }));
   const removeSlab = (i: number) => setForm((f) => ({ ...f, priceSlabs: f.priceSlabs.filter((_, idx) => idx !== i) }));
+
+  const addTrustBadge = () =>
+    setForm((f) => ({ ...f, trustBadges: [...(f.trustBadges ?? []), { label: "", icon: "CHECK" }] }));
+  const updateTrustBadge = (i: number, patch: Partial<{ label: string; icon: string }>) =>
+    setForm((f) => ({ ...f, trustBadges: (f.trustBadges ?? []).map((b, idx) => (idx === i ? { ...b, ...patch } : b)) }));
+  const removeTrustBadge = (i: number) =>
+    setForm((f) => ({ ...f, trustBadges: (f.trustBadges ?? []).filter((_, idx) => idx !== i) }));
 
   const validateSlabs = (): string | null => {
     const slabs = form.priceSlabs;
@@ -245,6 +274,10 @@ export default function AdminProductsPage() {
     ribbonTextOverride: form.ribbonTextOverride || undefined, isFeatured: form.isFeatured, isTrending: form.isTrending,
     metaTitle: form.metaTitle || undefined, metaDescription: form.metaDescription || undefined,
     metaKeywords: form.metaKeywords || undefined, canonicalUrl: form.canonicalUrl || undefined,
+    // Sent as an explicit value (never `undefined`) so choosing "use default"
+    // (null) actually clears a previous customization instead of leaving it
+    // in place — the same silent-no-op bug the price slabs save had.
+    trustBadges: form.trustBadges,
   });
 
   const handleSave = async (e: React.FormEvent) => {
@@ -259,9 +292,12 @@ export default function AdminProductsPage() {
       const body = buildBody();
       const saved = editing ? await productsApi.update(editing.id, body) : await productsApi.create(body);
       const id = String((saved as Product).id ?? editing?.id);
-      if (form.priceSlabs.length > 0) {
+      {
         // Loaded slabs carry id/productId from GET; the PUT replaces the
         // whole set and only accepts these 4 fields, so strip the rest.
+        // Always call this — including with an empty array — so removing
+        // every slab in the form actually clears them server-side instead
+        // of silently leaving the previously-saved slabs in place.
         const cleanSlabs = form.priceSlabs.map(({ minQty, maxQty, pricePerUnit, requiresQuote }) => ({
           minQty: Number(minQty),
           maxQty: maxQty === null || maxQty === undefined || (maxQty as unknown) === "" ? null : Number(maxQty),
@@ -549,6 +585,59 @@ export default function AdminProductsPage() {
                     </label>
                   ))}
                 </div>
+              </div>
+              <div className="field full">
+                <label>Product page trust strip</label>
+                <label className="check" style={{ display: "block", marginBottom: 8 }}>
+                  <input
+                    type="checkbox"
+                    checked={form.trustBadges === null}
+                    onChange={(e) => setForm({ ...form, trustBadges: e.target.checked ? null : DEFAULT_TRUST_BADGES.map((b) => ({ ...b })) })}
+                  /> Use default (show all 5)
+                </label>
+                {form.trustBadges !== null && (
+                  <>
+                    <table className="table" style={{ marginBottom: 8 }}>
+                      <thead>
+                        <tr><th>Label</th><th>Icon</th><th /></tr>
+                      </thead>
+                      <tbody>
+                        {form.trustBadges.map((b, i) => (
+                          <tr key={i}>
+                            <td>
+                              <input
+                                className="input"
+                                style={{ padding: "7px 12px", fontSize: 13 }}
+                                placeholder="e.g. Made in India"
+                                value={b.label}
+                                onChange={(e) => updateTrustBadge(i, { label: e.target.value })}
+                              />
+                            </td>
+                            <td>
+                              <select
+                                className="input"
+                                style={{ padding: "7px 12px", fontSize: 13 }}
+                                value={b.icon}
+                                onChange={(e) => updateTrustBadge(i, { icon: e.target.value })}
+                              >
+                                {TRUST_ICON_OPTIONS.map((o) => (
+                                  <option key={o.key} value={o.key}>{o.label}</option>
+                                ))}
+                              </select>
+                            </td>
+                            <td style={{ textAlign: "right" }}>
+                              <button type="button" className="btn btn-ghost btn-sm" onClick={() => removeTrustBadge(i)}>Remove</button>
+                            </td>
+                          </tr>
+                        ))}
+                        {form.trustBadges.length === 0 && (
+                          <tr><td colSpan={3} style={{ color: "var(--color-neutral-600)" }}>No badges — nothing shows in the trust strip on this product's page.</td></tr>
+                        )}
+                      </tbody>
+                    </table>
+                    <button type="button" className="btn btn-secondary btn-sm" onClick={addTrustBadge}>Add badge</button>
+                  </>
+                )}
               </div>
               <div className="field full">
                 <label>Homepage rail placement</label>

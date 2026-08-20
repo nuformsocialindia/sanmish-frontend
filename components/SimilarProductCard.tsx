@@ -5,14 +5,23 @@ import { useCart } from "@/lib/cart-context";
 import { useWishlist } from "@/lib/wishlist-context";
 import type { ProductDetail } from "@/lib/productLookup";
 
-export default function SimilarProductCard({ product }: { product: ProductDetail }) {
+export default function SimilarProductCard({
+  product,
+  compact = true,
+}: {
+  product: ProductDetail;
+  // compact=true: fixed-width card for a horizontal scroll rail (product
+  // detail page's "Similar Products"). compact=false: a plain grid card,
+  // full-width within its CSS Grid cell (category pages, etc).
+  compact?: boolean;
+}) {
   const { addItem } = useCart();
   const { isWishlisted, toggleItem } = useWishlist();
   const wishlisted = isWishlisted(product.slug);
   const [added, setAdded] = useState(false);
 
   return (
-    <div className="prod pdp-similar-card">
+    <div className={`prod${compact ? " pdp-similar-card" : ""}`}>
       <Link href={`/products/${product.slug}`} className="prod-card-link" aria-hidden="true" tabIndex={-1} />
       <div className="prod-img">
         <span dangerouslySetInnerHTML={{ __html: product.icon }} />

@@ -1,4 +1,7 @@
+"use client";
+import { useState } from "react";
 import Link from "next/link";
+import type { ApiCategory } from "@/lib/publicApi";
 
 export function PageBanner() {
   return (
@@ -28,31 +31,88 @@ export function PageBanner() {
   );
 }
 
-export function ListingSearchBand() {
+export function ListingSearchBand({
+  categories,
+  searchTerm,
+  onSearchTermChange,
+  selectedCategory,
+  onCategoryChange,
+  onSubmit,
+}: {
+  categories: ApiCategory[];
+  searchTerm: string;
+  onSearchTermChange: (v: string) => void;
+  selectedCategory: string | null;
+  onCategoryChange: (v: string | null) => void;
+  onSubmit: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+
   return (
     <section className="searchband listing-searchband">
       <div className="wrap">
-        <div className="search-card reveal d3">
-          <button className="search-cat">
-            All Categories
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="m6 9 6 6 6-6" />
-            </svg>
-          </button>
+        <form
+          className="search-card reveal d3"
+          onSubmit={(e) => {
+            e.preventDefault();
+            setOpen(false);
+            onSubmit();
+          }}
+        >
+          <div className="search-cat-wrap">
+            <button type="button" className="search-cat" onClick={() => setOpen((v) => !v)}>
+              {selectedCategory ?? "All Categories"}
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="m6 9 6 6 6-6" />
+              </svg>
+            </button>
+            {open && (
+              <div className="search-cat-menu">
+                <button
+                  type="button"
+                  className={selectedCategory === null ? "active" : ""}
+                  onClick={() => {
+                    onCategoryChange(null);
+                    setOpen(false);
+                  }}
+                >
+                  All Categories
+                </button>
+                {categories.map((c) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    className={selectedCategory === c.name ? "active" : ""}
+                    onClick={() => {
+                      onCategoryChange(c.name);
+                      setOpen(false);
+                    }}
+                  >
+                    {c.name}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
           <div className="search-sep" />
           <div className="search-input">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
             </svg>
-            <input type="text" placeholder="Search equipment — compressors, dispensers, cascade systems…" />
+            <input
+              type="text"
+              placeholder="Search equipment — compressors, dispensers, cascade systems…"
+              value={searchTerm}
+              onChange={(e) => onSearchTermChange(e.target.value)}
+            />
           </div>
-          <button className="btn btn-primary">
+          <button type="submit" className="btn btn-primary">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
             </svg>
             Search
           </button>
-        </div>
+        </form>
       </div>
     </section>
   );

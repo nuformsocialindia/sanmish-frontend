@@ -39,3 +39,29 @@ export const auth = {
     return data?.user ?? null;
   },
 };
+
+// "Become a Seller" public application (docs/public-api.md: POST /public/vendors/apply).
+// No auth — creates a pending vendor row an admin reviews in /admin/vendors;
+// approving it emails the applicant automatically.
+export type VendorBusinessType = "manufacturer" | "wholesaler" | "distributor" | "trader" | "service_provider";
+
+export type ApplyVendorPayload = {
+  businessName: string;
+  vendorName: string;
+  email: string;
+  mobileNumber: string;
+  companyAddress: string;
+  businessType: VendorBusinessType;
+  gstin?: string;
+  pan?: string;
+  cin?: string;
+  city?: string;
+  state?: string;
+  fuelTypes?: string[];
+};
+
+export type ApplyVendorResult = { id: string; businessName: string; verificationStatus: string };
+
+export const vendors = {
+  apply: (payload: ApplyVendorPayload) => request<ApplyVendorResult>("/public/vendors/apply", payload),
+};

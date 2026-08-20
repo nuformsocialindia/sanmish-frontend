@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState, type ReactNode } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAdminAuth } from "@/lib/admin/auth-context";
@@ -51,11 +52,8 @@ export default function AdminShell({ children }: { children: ReactNode }) {
       <div className="adm-shell">
         <aside className="adm-sidebar">
           <div className="adm-brand">
-            <span className="adm-brand-dot">S</span>
-            <div>
-              <div className="adm-brand-name">SANMISH</div>
-              <div className="adm-brand-sub">Admin console</div>
-            </div>
+            <Image src="/SanmishXLOGO.jpg" alt="SanmishX" width={93} height={58} style={{ height: 40, width: "auto" }} priority />
+            <div className="adm-brand-sub">Admin console</div>
           </div>
 
           <nav className="adm-nav-sections">

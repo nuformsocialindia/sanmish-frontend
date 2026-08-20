@@ -1,5 +1,12 @@
 import Link from "next/link";
 import { SERVICES, PROCESS_STEPS, INDUSTRIES, SERVICE_STATS } from "@/lib/data";
+import type { ApiService } from "@/lib/publicApi";
+
+const DEFAULT_SERVICE_ICON = `<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 15l2 2 4-4"/>`;
+
+function normalizeApiServices(apiServices: ApiService[]) {
+  return apiServices.map((s) => ({ t: s.name, d: s.summary, i: DEFAULT_SERVICE_ICON }));
+}
 
 export function ServicesHero() {
   return (
@@ -107,8 +114,9 @@ export function ServicesHero() {
   );
 }
 
-export function ServicesGridSection() {
+export function ServicesGridSection({ apiServices = [] }: { apiServices?: ApiService[] }) {
   const delays = ["", " d1", " d2", " d3"];
+  const services = [...SERVICES, ...normalizeApiServices(apiServices)];
   return (
     <section className="section" id="services-list" style={{ paddingTop: 40 }}>
       <div className="wrap">
@@ -118,8 +126,8 @@ export function ServicesGridSection() {
           <p className="reveal d2">A complete engineering stack for alternative fuel infrastructure — pick a single service or a full turnkey scope.</p>
         </div>
         <div className="svc-grid">
-          {SERVICES.map((s, i) => (
-            <div key={s.t} className={`svc reveal${delays[i % 4]}`}>
+          {services.map((s, i) => (
+            <div key={`${s.t}-${i}`} className={`svc reveal${delays[i % 4]}`}>
               <span className="num">0{i + 1}</span>
               <div className="svc-ic">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" dangerouslySetInnerHTML={{ __html: s.i }} />

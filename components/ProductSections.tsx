@@ -1,8 +1,50 @@
 "use client";
+import { useMemo } from "react";
 import Link from "next/link";
-import { FEATURE_HIGHLIGHTS, CATEGORIES, PRODUCTS } from "@/lib/data";
-import { slugify } from "@/lib/slug";
+import { FEATURE_HIGHLIGHTS } from "@/lib/data";
 import { useWishlist } from "@/lib/wishlist-context";
+import { publicFileUrl, type ApiCategory, type ApiProductSummary } from "@/lib/publicApi";
+
+const DEFAULT_CATEGORY_ICON = `<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/>`;
+const FALLBACK_PRODUCT_ICON = `<svg viewBox="0 0 120 120" fill="none" stroke="#3E79BD" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><rect x="30" y="30" width="60" height="60" rx="10"/><path d="M30 30 60 46 90 30M60 46v44"/></svg>`;
+
+function normalizeApiCategories(apiCategories: ApiCategory[]) {
+  return apiCategories.map((c) => ({
+    slug: c.slug,
+    icon: DEFAULT_CATEGORY_ICON,
+    imageUrl: c.imageUrl ? publicFileUrl(c.imageUrl) : null,
+    label: c.name,
+    sub: `${c.productCount} product${c.productCount === 1 ? "" : "s"}`,
+  }));
+}
+
+type DisplayProduct = {
+  key: string;
+  slug: string;
+  title: string;
+  category: string;
+  seller: string;
+  priceLabel: string;
+  priceValue: number | null;
+  badge: string;
+  icon: string;
+};
+
+function normalizeApiProducts(apiProducts: ApiProductSummary[]): DisplayProduct[] {
+  return apiProducts.map((p) => ({
+    key: p.id,
+    slug: p.slug,
+    title: p.title,
+    category: p.category?.name ?? p.fuelType,
+    seller: p.vendor?.businessName ?? "Verified Seller",
+    priceLabel: p.quoteOnly || p.sellingPrice == null ? "On Request" : "₹ " + p.sellingPrice.toLocaleString("en-IN"),
+    priceValue: p.sellingPrice,
+    badge: p.isFeatured ? "Featured" : p.isTrending ? "Trending" : "New",
+    icon: publicFileUrl(p.images?.[0]?.url)
+      ? `<img src="${publicFileUrl(p.images?.[0]?.url)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:inherit" />`
+      : FALLBACK_PRODUCT_ICON,
+  }));
+}
 
 export function SearchBand() {
   const handleTagClick = (text: string) => {
@@ -72,8 +114,16 @@ export function FeatureHighlights() {
   );
 }
 
-export function CategoryGrid() {
+const CATEGORY_INITIAL_COUNT = 12;
+
+export function CategoryGrid({ apiCategories = [] }: { apiCategories?: ApiCategory[] }) {
   const delays = ["", " d1", " d2", " d3", " d4", " d5", "", " d1", " d2", " d3", " d4", " d5"];
+  const categories = useMemo(() => normalizeApiCategories(apiCategories), [apiCategories]);
+  const hasMore = categories.length > CATEGORY_INITIAL_COUNT;
+  const visible = categories.slice(0, CATEGORY_INITIAL_COUNT);
+
+  if (categories.length === 0) return null;
+
   return (
     <section className="section" id="categories" style={{ paddingTop: 20 }}>
       <div className="wrap">
@@ -83,24 +133,50 @@ export function CategoryGrid() {
           <p className="reveal d2">Everything you need to build, run and maintain alternative fuel infrastructure — organised for fast B2B procurement.</p>
         </div>
         <div className="cat-grid">
-          {CATEGORIES.map((cat, i) => (
-            <a key={cat.label} className={`cat reveal${delays[i] || ""}`}>
+          {visible.map((cat, i) => (
+            <Link
+              key={cat.slug}
+              href={`/categories/${cat.slug}`}
+              className={`cat reveal${delays[i % delays.length] || ""}`}
+            >
               <div className="cat-circle">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" dangerouslySetInnerHTML={{ __html: cat.icon }} />
+                {cat.imageUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={cat.imageUrl} alt={cat.label} />
+                ) : (
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" dangerouslySetInnerHTML={{ __html: cat.icon }} />
+                )}
               </div>
               <span>{cat.label}</span>
               <small>{cat.sub}</small>
-            </a>
+            </Link>
           ))}
         </div>
+        {hasMore && (
+          <div style={{ textAlign: "center", marginTop: 32 }} className="reveal">
+            <Link href="/categories" className="btn btn-ghost">
+              View All Categories
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M5 12h14M12 5l7 7-7 7" />
+              </svg>
+            </Link>
+          </div>
+        )}
       </div>
     </section>
   );
 }
 
-export function FeaturedProducts() {
+export function FeaturedProducts({ apiProducts = [] }: { apiProducts?: ApiProductSummary[] }) {
   const delays = ["", " d1", " d2", " d3", "", " d1", " d2", " d3"];
   const { isWishlisted, toggleItem } = useWishlist();
+  // This is a homepage teaser, not the catalogue — cap it to a clean 4x2 grid
+  // and send anyone who wants more to the full /products listing via the
+  // "View all products" link below.
+  const products = useMemo(() => normalizeApiProducts(apiProducts).slice(0, 8), [apiProducts]);
+
+  if (products.length === 0) return null;
+
   return (
     <section className="section" id="products" style={{ background: "linear-gradient(180deg,var(--bg),#fff)" }}>
       <div className="wrap">
@@ -110,16 +186,14 @@ export function FeaturedProducts() {
           <p className="reveal d2">Live listings from verified manufacturers, ready for quotation and bulk order.</p>
         </div>
         <div className="prod-grid">
-          {PRODUCTS.map((p, i) => {
-            const slug = slugify(p.t);
-            const digits = p.p.replace(/[^0-9]/g, "");
-            const wishlisted = isWishlisted(slug);
+          {products.map((p, i) => {
+            const wishlisted = isWishlisted(p.slug);
             return (
-            <div key={p.t} className={`prod reveal${delays[i] || ""}`}>
-              <Link href={`/products/${slug}`} className="prod-card-link" aria-hidden="true" tabIndex={-1} />
+            <div key={p.key} className={`prod reveal${delays[i % delays.length] || ""}`}>
+              <Link href={`/products/${p.slug}`} className="prod-card-link" aria-hidden="true" tabIndex={-1} />
               <div className="prod-img">
-                <span dangerouslySetInnerHTML={{ __html: p.ic }} />
-                <span className="prod-badge">{p.b}</span>
+                <span dangerouslySetInnerHTML={{ __html: p.icon }} />
+                <span className="prod-badge">{p.badge}</span>
                 <button
                   type="button"
                   className={`prod-wishlist${wishlisted ? " active" : ""}`}
@@ -127,14 +201,14 @@ export function FeaturedProducts() {
                   aria-pressed={wishlisted}
                   onClick={() =>
                     toggleItem({
-                      slug,
-                      title: p.t,
-                      category: p.c,
-                      seller: p.s,
-                      priceLabel: p.p,
-                      priceValue: digits ? Number(digits) : null,
-                      badge: p.b,
-                      icon: p.ic,
+                      slug: p.slug,
+                      title: p.title,
+                      category: p.category,
+                      seller: p.seller,
+                      priceLabel: p.priceLabel,
+                      priceValue: p.priceValue,
+                      badge: p.badge,
+                      icon: p.icon,
                     })
                   }
                 >
@@ -144,23 +218,23 @@ export function FeaturedProducts() {
                 </button>
               </div>
               <div className="prod-body">
-                <h3>{p.t}</h3>
-                <div className="prod-cat">{p.c}</div>
+                <h3>{p.title}</h3>
+                <div className="prod-cat">{p.category}</div>
                 <div className="prod-seller">
                   <span className="sd">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
                     </svg>
                   </span>
-                  {p.s}
+                  {p.seller}
                 </div>
                 <div className="prod-foot">
                   <div className="prod-price">
                     <small>Starting from</small>
-                    <b>{p.p}</b>
+                    <b>{p.priceLabel}</b>
                   </div>
                   <div className="prod-actions">
-                    <Link href={`/products/${slug}`} className="mini-btn o">Details</Link>
+                    <Link href={`/products/${p.slug}`} className="mini-btn o">Details</Link>
                     <button className="mini-btn g">Get Quote</button>
                   </div>
                 </div>
@@ -170,12 +244,12 @@ export function FeaturedProducts() {
           })}
         </div>
         <div style={{ textAlign: "center", marginTop: 44 }} className="reveal">
-          <a href="#" className="btn btn-ghost">
+          <Link href="/products" className="btn btn-ghost">
             View all products
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M5 12h14M12 5l7 7-7 7" />
             </svg>
-          </a>
+          </Link>
         </div>
       </div>
     </section>

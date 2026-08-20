@@ -43,12 +43,8 @@ export default function Footer() {
 
           <div className="foot-col">
             <h4>Categories</h4>
-            <Link href={resolveHref("#categories", pathname)}>CNG Equipment</Link>
-            <Link href={resolveHref("#categories", pathname)}>CBG Systems</Link>
-            <Link href={resolveHref("#categories", pathname)}>Bio Gas Plants</Link>
-            <Link href={resolveHref("#categories", pathname)}>Flow Meters</Link>
-            <Link href={resolveHref("#categories", pathname)}>Compressors</Link>
-            <Link href={resolveHref("#categories", pathname)}>Storage Tanks</Link>
+            <Link href="/categories">Browse Categories</Link>
+            <Link href="/products">All Products</Link>
           </div>
 
           <div className="foot-col">

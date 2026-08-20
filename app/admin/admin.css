@@ -1,59 +1,60 @@
-/* SANMISH Admin — "Organic" design system, ported from the design handoff
-   (design/styles.css) verbatim for tokens + base components, plus the
-   admin-specific layout classes (adm-*) built on top of them. Imported only
-   by app/admin/layout.tsx — nothing here is referenced by the customer site,
-   so app/admin/ + lib/admin/ + components/admin/ can be lifted into a
-   separate app later without touching app/globals.css. */
-@import url('https://fonts.googleapis.com/css2?family=Caprasimo:wght@400&family=Figtree:wght@400;600;700&display=swap');
+/* SANMISH Admin — design system tokens, restyled to match the storefront's
+   own palette (app/globals.css: --green/--blue) and type pairing
+   (Poppins/Inter) instead of the original organic/warm theme. Still scoped
+   entirely under .adm-root and imported only by app/admin/layout.tsx —
+   nothing here is referenced by the customer site, so app/admin/ +
+   lib/admin/ + components/admin/ can still be lifted into a separate app
+   later without touching app/globals.css. */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
 
 .adm-root {
-  --color-bg: #f5ead8;
-  --color-surface: #ebddc5;
-  --color-text: #201e1d;
-  --color-accent: #c67139;
-  --color-accent-2: #7a8a5e;
-  --color-divider: color-mix(in srgb, #201e1d 16%, transparent);
+  --color-bg: #F7FAFC;
+  --color-surface: #EEF3F7;
+  --color-text: #1F2937;
+  --color-accent: #7BB145;
+  --color-accent-2: #3E79BD;
+  --color-divider: #E4EBF2;
 
-  --color-neutral-100: #f9f4ed;
-  --color-neutral-200: #eee7db;
-  --color-neutral-300: #dcd3c4;
-  --color-neutral-400: #c0b6a5;
-  --color-neutral-500: #a19786;
-  --color-neutral-600: #82796a;
-  --color-neutral-700: #645c50;
-  --color-neutral-800: #474238;
-  --color-neutral-900: #2e2b25;
+  --color-neutral-100: #F7FAFC;
+  --color-neutral-200: #EEF3F7;
+  --color-neutral-300: #E4EBF2;
+  --color-neutral-400: #C6D0DC;
+  --color-neutral-500: #9AA7B4;
+  --color-neutral-600: #6B7280;
+  --color-neutral-700: #4B5563;
+  --color-neutral-800: #333B47;
+  --color-neutral-900: #1F2937;
 
-  --color-accent-100: #fff2eb;
-  --color-accent-200: #ffe1d0;
-  --color-accent-300: #ffc6a5;
-  --color-accent-400: #f6a06b;
-  --color-accent-500: #d67f48;
-  --color-accent-600: #b2622d;
-  --color-accent-700: #8c491a;
-  --color-accent-800: #643312;
-  --color-accent-900: #402310;
+  --color-accent-100: #EEF7E4;
+  --color-accent-200: #DCEFC9;
+  --color-accent-300: #C3E2A0;
+  --color-accent-400: #A3D073;
+  --color-accent-500: #8CC257;
+  --color-accent-600: #7BB145;
+  --color-accent-700: #69993A;
+  --color-accent-800: #4F7A2B;
+  --color-accent-900: #37561E;
 
-  --color-accent-2-100: #f0fae1;
-  --color-accent-2-200: #e1eecc;
-  --color-accent-2-300: #ccdbb2;
-  --color-accent-2-400: #aebf92;
-  --color-accent-2-500: #8fa073;
-  --color-accent-2-600: #728157;
-  --color-accent-2-700: #56633f;
-  --color-accent-2-800: #3d472b;
-  --color-accent-2-900: #272e1b;
+  --color-accent-2-100: #EAF1FA;
+  --color-accent-2-200: #D3E3F4;
+  --color-accent-2-300: #AECBEA;
+  --color-accent-2-400: #7FABDB;
+  --color-accent-2-500: #5E91CD;
+  --color-accent-2-600: #3E79BD;
+  --color-accent-2-700: #33639C;
+  --color-accent-2-800: #294F7D;
+  --color-accent-2-900: #1F3C5E;
 
-  --font-heading: "Caprasimo", system-ui, sans-serif;
-  --font-heading-weight: 400;
-  --font-body: "Figtree", system-ui, sans-serif;
+  --font-heading: "Poppins", system-ui, sans-serif;
+  --font-heading-weight: 600;
+  --font-body: "Inter", system-ui, sans-serif;
 
   --space-1: 4.4px; --space-2: 8.8px; --space-3: 13.2px; --space-4: 17.6px; --space-6: 26.4px; --space-8: 35.2px;
   --radius-sm: 8px; --radius-md: 16px; --radius-lg: 28px;
 
-  --shadow-sm: 0 1px 2px color-mix(in srgb, #2e2b25 14%, transparent);
-  --shadow-md: 0 3px 10px color-mix(in srgb, #2e2b25 16%, transparent);
-  --shadow-lg: 0 12px 32px color-mix(in srgb, #2e2b25 22%, transparent);
+  --shadow-sm: 0 1px 2px color-mix(in srgb, #1F2937 14%, transparent);
+  --shadow-md: 0 3px 10px color-mix(in srgb, #1F2937 16%, transparent);
+  --shadow-lg: 0 12px 32px color-mix(in srgb, #1F2937 22%, transparent);
 
   background: var(--color-bg);
   color: var(--color-text);
@@ -192,12 +193,6 @@
   display: flex; flex-direction: column; gap: 28px;
 }
 .adm-brand { display: flex; align-items: center; gap: 12px; }
-.adm-brand-dot {
-  width: 38px; height: 38px; border-radius: 999px; background: var(--color-accent);
-  color: var(--color-accent-100); display: grid; place-items: center;
-  font-family: var(--font-heading); font-size: 18px; flex-shrink: 0;
-}
-.adm-brand-name { font-family: var(--font-heading); font-size: 18px; line-height: 1.2; }
 .adm-brand-sub { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--color-neutral-600); }
 
 .adm-nav-sections { display: flex; flex-direction: column; gap: 22px; }

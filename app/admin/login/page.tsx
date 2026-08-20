@@ -1,5 +1,6 @@
 "use client";
 import { Suspense, useState } from "react";
+import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { authApi, AdminApiError } from "@/lib/admin/api";
 import { useAdminAuth } from "@/lib/admin/auth-context";
@@ -73,8 +74,8 @@ function AdminLoginInner() {
       <div className="adm-login-grid">
         <div className="adm-login-left">
           <div className="adm-brand">
-            <span className="adm-brand-dot">S</span>
-            <span className="adm-brand-name" style={{ fontSize: 22 }}>SANMISH</span>
+            <Image src="/SanmishXLOGO.jpg" alt="SanmishX" width={93} height={58} style={{ height: 48, width: "auto" }} priority />
+            <span className="adm-brand-sub">Admin console</span>
           </div>
           <div>
             <h1 className="adm-login-hero">The admin panel for a marketplace that runs on trust.</h1>

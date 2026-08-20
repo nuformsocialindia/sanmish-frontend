@@ -1,22 +1,38 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useScrollAnimations } from "@/lib/useScrollAnimations";
 import { useCart } from "@/lib/cart-context";
 import { useWishlist } from "@/lib/wishlist-context";
-import { getAllProducts, type ProductDetail } from "@/lib/productLookup";
-import { BULK_TIERS, MIN_ORDER_QTY, mockRating, tierForQty, unitPriceForQty } from "@/lib/pricingTiers";
+import { type ProductDetail } from "@/lib/productLookup";
+import { BULK_TIERS, MIN_ORDER_QTY, mockRating, tierForQty, unitPriceForQty, computeUnitPricing } from "@/lib/pricingTiers";
 import SimilarProductCard from "@/components/SimilarProductCard";
 
 const inr = (n: number) => "₹ " + n.toLocaleString("en-IN", { maximumFractionDigits: 2 });
 
-const TRUST_STRIP = [
-  { t: "7 Days Return Policy", icon: `<path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 3v6h6"/>` },
-  { t: "100% Original Products", icon: `<circle cx="12" cy="8" r="6"/><path d="M9 12 6 21l6-3 6 3-3-9"/>` },
-  { t: "Secure Payments", icon: `<rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>` },
-  { t: "100% Buyer Protection", icon: `<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/>` },
-  { t: "Top Brands", icon: `<circle cx="12" cy="8" r="6"/><path d="M15.5 13.5 17 21l-5-3-5 3 1.5-7.5"/>` },
+// Whitelisted icon set for trust badges — admins pick a key (never raw
+// markup) so a badge's `icon` field can never inject arbitrary HTML. Keys
+// match the admin's ICON_OPTIONS (app/admin/(dashboard)/products).
+const TRUST_ICON_LIBRARY: Record<string, string> = {
+  RETURN: `<path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 3v6h6"/>`,
+  ORIGINAL: `<circle cx="12" cy="8" r="6"/><path d="M9 12 6 21l6-3 6 3-3-9"/>`,
+  PAYMENT: `<rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>`,
+  PROTECTION: `<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/>`,
+  BRAND: `<circle cx="12" cy="8" r="6"/><path d="M15.5 13.5 17 21l-5-3-5 3 1.5-7.5"/>`,
+  SHIPPING: `<path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.62l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/>`,
+  STAR: `<path d="m12 2 2.9 6.6 7.1.7-5.4 4.7 1.6 7-6.2-3.8L6 21l1.6-7L2.2 9.3l7.1-.7z"/>`,
+  CHECK: `<circle cx="12" cy="12" r="9"/><path d="m9 12 2 2 4-4"/>`,
+};
+const DEFAULT_TRUST_ICON = TRUST_ICON_LIBRARY.CHECK;
+
+// Shown for any product whose `trustBadges` is null (i.e. not customized).
+const DEFAULT_TRUST_BADGES = [
+  { label: "7 Days Return Policy", icon: "RETURN" },
+  { label: "100% Original Products", icon: "ORIGINAL" },
+  { label: "Secure Payments", icon: "PAYMENT" },
+  { label: "100% Buyer Protection", icon: "PROTECTION" },
+  { label: "Top Brands", icon: "BRAND" },
 ];
 
 const SPECS = [
@@ -30,28 +46,99 @@ const SPECS = [
   { k: "Country of Origin", v: "India" },
 ];
 
-export default function ProductDetailView({ product }: { product: ProductDetail }) {
+export default function ProductDetailView({
+  product,
+  similarProducts,
+}: {
+  product: ProductDetail;
+  similarProducts: ProductDetail[];
+}) {
   useScrollAnimations();
   const router = useRouter();
   const { addItem } = useCart();
   const { isWishlisted, toggleItem } = useWishlist();
   const wishlisted = isWishlisted(product.slug);
-  const [qty, setQty] = useState(MIN_ORDER_QTY);
+
+  // API-sourced products carry the same server-computed GST pricing the admin
+  // panel shows; hardcoded demo products don't, so they keep the old synthetic
+  // "buy more save more" bulk-tier simulation unchanged.
+  const isApiPriced = product.basePrice !== undefined;
+  const minOrderQty = product.minOrderQty ?? MIN_ORDER_QTY;
+  const [qty, setQty] = useState(minOrderQty);
   const [tab, setTab] = useState<"description" | "specs">("description");
   const [added, setAdded] = useState(false);
   const [copied, setCopied] = useState(false);
   const [pincode, setPincode] = useState("");
   const [pincodeChecked, setPincodeChecked] = useState<string | null>(null);
+  const [activeImage, setActiveImage] = useState(0);
+  const gallery = product.images && product.images.length > 0 ? product.images : null;
+
+  const round2 = (n: number) => Math.round(n * 100) / 100;
+
+  // Real volume-pricing slabs from the admin (only present on API products
+  // with a configured ladder). When absent, price is flat at any quantity.
+  const realTiers = isApiPriced && product.priceSlabs && product.priceSlabs.length > 0
+    ? product.priceSlabs.map((s) => ({
+        label: s.maxQty ? `${s.minQty} - ${s.maxQty}` : `${s.minQty}+`,
+        min: s.minQty,
+        max: s.maxQty,
+        sellingPrice: s.requiresQuote ? null : s.pricePerUnit,
+      }))
+    : null;
+
+  const activeRealTier = realTiers
+    ? realTiers.find((t) => qty >= t.min && (t.max === null || qty <= t.max)) ?? realTiers[0]
+    : null;
+
+  // Per-tier display price + "save X%" vs. the first (lowest-quantity) tier.
+  const realTierRows = realTiers?.map((tier) => {
+    const gstRate = product.gstRate ?? 18;
+    const priceIncludesGst = product.priceIncludesGst ?? true;
+    const gstApplicable = product.gstApplicable ?? true;
+    const tierPrice = tier.sellingPrice == null
+      ? null
+      : round2(computeUnitPricing(tier.sellingPrice, gstRate, priceIncludesGst, gstApplicable).grandTotal);
+    return { ...tier, tierPrice };
+  });
+  const firstTierPrice = realTierRows?.[0]?.tierPrice ?? null;
 
   const basePrice = product.priceValue;
-  const activeTier = tierForQty(qty);
-  const unitPrice = basePrice != null ? unitPriceForQty(basePrice, qty) : null;
+  let unitPrice: number | null;
+  let gstBase: number | null;
+  let gstAmount: number | null;
+  let discountPct = 0;
+  const activeTier = tierForQty(qty); // used for the hardcoded-product fallback UI only
+
+  if (isApiPriced) {
+    const gstRate = product.gstRate ?? 18;
+    const priceIncludesGst = product.priceIncludesGst ?? true;
+    const gstApplicable = product.gstApplicable ?? true;
+    const sellingAtQty = realTiers ? activeRealTier?.sellingPrice ?? null : product.priceValue;
+
+    if (sellingAtQty == null) {
+      unitPrice = null;
+      gstBase = null;
+      gstAmount = null;
+    } else {
+      const computed = computeUnitPricing(sellingAtQty, gstRate, priceIncludesGst, gstApplicable);
+      unitPrice = round2(computed.grandTotal);
+      gstBase = round2(computed.basePrice);
+      gstAmount = round2(computed.gstAmount);
+    }
+    if (product.mrp && unitPrice != null && product.mrp > unitPrice) {
+      discountPct = round2(((product.mrp - unitPrice) / product.mrp) * 100);
+    }
+  } else {
+    unitPrice = basePrice != null ? unitPriceForQty(basePrice, qty) : null;
+    gstBase = unitPrice != null ? unitPrice / 1.05 : null;
+    gstAmount = unitPrice != null && gstBase != null ? unitPrice - gstBase : null;
+    discountPct = basePrice != null && unitPrice != null && basePrice > 0
+      ? Math.round((1 - unitPrice / basePrice) * 1000) / 10
+      : 0;
+  }
+
   const total = unitPrice != null ? unitPrice * qty : null;
-  const gstBase = unitPrice != null ? unitPrice / 1.05 : null;
-  const gstAmount = unitPrice != null && gstBase != null ? unitPrice - gstBase : null;
-  const discountPct = basePrice != null && unitPrice != null && basePrice > 0
-    ? Math.round((1 - unitPrice / basePrice) * 1000) / 10
-    : 0;
+  const mrpForStrike = isApiPriced ? (discountPct > 0 ? product.mrp : null) : (discountPct > 0 ? basePrice : null);
   const rating = mockRating(product.slug);
 
   const handleAddToCart = () => {
@@ -71,18 +158,29 @@ export default function ProductDetailView({ product }: { product: ProductDetail 
     }
   };
 
-  const specs = SPECS.map((row) => {
-    if (row.k === "Category") return { ...row, v: product.category };
-    if (row.k === "Brand") return { ...row, v: product.brand || "—" };
-    if (row.k === "Supplier Type") return { ...row, v: product.type || "Verified Manufacturer" };
-    return row;
-  });
+  // Real per-product specifications from the admin take over the generic
+  // demo rows (Warranty/Delivery/Certification/…) once they're configured.
+  const specs = product.specifications && product.specifications.length > 0
+    ? [
+        { k: "Category", v: product.category },
+        { k: "Brand", v: product.brand || "—" },
+        { k: "Supplier Type", v: product.type || "Verified Manufacturer" },
+        ...product.specifications.map((s) => ({ k: s.key.trim(), v: s.value })),
+      ]
+    : SPECS.map((row) => {
+        if (row.k === "Category") return { ...row, v: product.category };
+        if (row.k === "Brand") return { ...row, v: product.brand || "—" };
+        if (row.k === "Supplier Type") return { ...row, v: product.type || "Verified Manufacturer" };
+        return row;
+      });
 
-  const similarProducts = useMemo(() => {
-    return getAllProducts()
-      .filter((p) => p.slug !== product.slug && p.category === product.category)
-      .slice(0, 8);
-  }, [product.slug, product.category]);
+  // product.trustBadges is null for hardcoded/unconfigured products (show
+  // the default strip); a fully custom, admin-authored list (any label,
+  // any count, possibly empty) wins once configured on that product.
+  const trustStrip = (product.trustBadges != null ? product.trustBadges : DEFAULT_TRUST_BADGES).map((b) => ({
+    label: b.label,
+    icon: TRUST_ICON_LIBRARY[b.icon] ?? DEFAULT_TRUST_ICON,
+  }));
 
   return (
     <>
@@ -113,12 +211,43 @@ export default function ProductDetailView({ product }: { product: ProductDetail 
           <div className="pdp-top-grid">
             <div className="pdp-gallery reveal">
               <div className="pdp-gallery-main">
-                <span dangerouslySetInnerHTML={{ __html: product.icon }} />
+                {gallery ? (
+                  <img src={gallery[activeImage] ?? gallery[0]} alt={product.title} style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "inherit" }} />
+                ) : (
+                  <span dangerouslySetInnerHTML={{ __html: product.icon }} />
+                )}
                 <span className="prod-badge">{product.badge}</span>
+                <button
+                  type="button"
+                  className={`prod-wishlist${wishlisted ? " active" : ""}`}
+                  aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
+                  aria-pressed={wishlisted}
+                  onClick={() => toggleItem(product)}
+                >
+                  <svg viewBox="0 0 24 24" fill={wishlisted ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                  </svg>
+                </button>
               </div>
               <div className="pdp-thumbs">
-                <div className="pdp-thumb active"><span dangerouslySetInnerHTML={{ __html: product.icon }} /></div>
-                <div className="pdp-thumb"><span dangerouslySetInnerHTML={{ __html: product.icon }} /></div>
+                {gallery ? (
+                  gallery.map((src, i) => (
+                    <button
+                      type="button"
+                      key={src}
+                      className={`pdp-thumb${i === activeImage ? " active" : ""}`}
+                      onClick={() => setActiveImage(i)}
+                      aria-label={`View image ${i + 1}`}
+                    >
+                      <img src={src} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "inherit" }} />
+                    </button>
+                  ))
+                ) : (
+                  <>
+                    <div className="pdp-thumb active"><span dangerouslySetInnerHTML={{ __html: product.icon }} /></div>
+                    <div className="pdp-thumb"><span dangerouslySetInnerHTML={{ __html: product.icon }} /></div>
+                  </>
+                )}
               </div>
             </div>
 
@@ -138,15 +267,15 @@ export default function ProductDetailView({ product }: { product: ProductDetail 
                 </span>
               </div>
 
-              {basePrice != null && (
+              {(basePrice != null || isApiPriced) && (
                 <div className="pdp-price-inline">
-                  {discountPct > 0 && <span className="off">-{discountPct}%</span>}
+                  {mrpForStrike != null && <span className="off">-{discountPct}%</span>}
                   <b>{unitPrice != null ? inr(unitPrice) : product.priceLabel}</b>
                   <span className="unit">/Piece</span>
-                  {discountPct > 0 && <s>{inr(basePrice)}</s>}
+                  {mrpForStrike != null && <s>{inr(mrpForStrike)}</s>}
                   <span className="tax-note">Inclusive of all taxes</span>
-                  {unitPrice != null && (
-                    <div className="gst-split">{inr(Math.round(gstBase! * 100) / 100)} + {inr(Math.round(gstAmount! * 100) / 100)} GST</div>
+                  {unitPrice != null && gstBase != null && gstAmount != null && (
+                    <div className="gst-split">{inr(gstBase)} + {inr(gstAmount)} GST</div>
                   )}
                 </div>
               )}
@@ -158,14 +287,16 @@ export default function ProductDetailView({ product }: { product: ProductDetail 
             </div>
           </div>
 
-            <div className="pdp-trust-strip">
-              {TRUST_STRIP.map((t) => (
-                <div key={t.t} className="pdp-trust-item">
-                  <span dangerouslySetInnerHTML={{ __html: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${t.icon}</svg>` }} />
-                  <small>{t.t}</small>
-                </div>
-              ))}
-            </div>
+            {trustStrip.length > 0 && (
+              <div className="pdp-trust-strip">
+                {trustStrip.map((t, i) => (
+                  <div key={`${t.label}-${i}`} className="pdp-trust-item">
+                    <span dangerouslySetInnerHTML={{ __html: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${t.icon}</svg>` }} />
+                    <small>{t.label}</small>
+                  </div>
+                ))}
+              </div>
+            )}
 
             <div className="pdp-tabs reveal">
               <div className="pdp-tab-buttons">
@@ -176,15 +307,19 @@ export default function ProductDetailView({ product }: { product: ProductDetail 
               <div className="pdp-tab-content">
                 {tab === "description" ? (
                   <p style={{ color: "var(--ink-soft)", maxWidth: 760, lineHeight: 1.8 }}>
-                    {product.title} from {product.seller} is listed on SANMISH as part of our {product.category} equipment
-                    catalogue. This listing is a placeholder while our full product-detail data pipeline is connected —
-                    pricing, specs and lead times shown here will be replaced with live data from the seller&rsquo;s catalogue.
-                    Reach out for a formal quotation, technical datasheet or bulk-order pricing.
+                    {product.description ?? (
+                      <>
+                        {product.title} from {product.seller} is listed on SANMISH as part of our {product.category} equipment
+                        catalogue. This listing is a placeholder while our full product-detail data pipeline is connected —
+                        pricing, specs and lead times shown here will be replaced with live data from the seller&rsquo;s catalogue.
+                        Reach out for a formal quotation, technical datasheet or bulk-order pricing.
+                      </>
+                    )}
                   </p>
                 ) : (
                   <div className="pdp-specs">
-                    {specs.map((row) => (
-                      <div className="spec-row" key={row.k}>
+                    {specs.map((row, i) => (
+                      <div className="spec-row" key={`${row.k}-${i}`}>
                         <span>{row.k}</span>
                         <span>{row.v}</span>
                       </div>
@@ -242,7 +377,7 @@ export default function ProductDetailView({ product }: { product: ProductDetail 
                 <span className="pdp-rating-chip">{rating} ★</span>
               </div>
 
-              {basePrice != null && (
+              {!isApiPriced && basePrice != null && (
                 <>
                   <div className="pdp-bmsm-head">Buy more save more</div>
                   <div className="pdp-bmsm-table">
@@ -281,14 +416,55 @@ export default function ProductDetailView({ product }: { product: ProductDetail 
                 </>
               )}
 
+              {isApiPriced && realTierRows && (
+                <>
+                  <div className="pdp-bmsm-head">Buy more save more</div>
+                  <div className="pdp-bmsm-table">
+                    <div className="pdp-bmsm-row pdp-bmsm-header">
+                      <span>Quantity</span>
+                      <span>Price/Piece (incl. of all taxes)</span>
+                    </div>
+                    {realTierRows.map((tier) => {
+                      const isActive = activeRealTier?.label === tier.label;
+                      const savePct = tier.tierPrice != null && firstTierPrice && firstTierPrice > tier.tierPrice
+                        ? round2(((firstTierPrice - tier.tierPrice) / firstTierPrice) * 100)
+                        : 0;
+                      return (
+                        <label key={tier.label} className={`pdp-bmsm-row${isActive ? " active" : ""}`}>
+                          <span className="pdp-bmsm-radio">
+                            <input
+                              type="radio"
+                              name="bulk-tier"
+                              checked={isActive}
+                              onChange={() => setQty(tier.min)}
+                            />
+                            {tier.label}
+                          </span>
+                          <span>
+                            {tier.tierPrice != null ? (
+                              <>
+                                {inr(tier.tierPrice)}
+                                {savePct > 0 ? <em> Save {savePct}%</em> : null}
+                              </>
+                            ) : (
+                              "Request Quote for Bulk"
+                            )}
+                          </span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+
               <div className="pdp-qty">
                 <span>Quantity</span>
-                <button type="button" onClick={() => setQty((q) => Math.max(MIN_ORDER_QTY, q - 1))} aria-label="Decrease quantity">−</button>
+                <button type="button" onClick={() => setQty((q) => Math.max(minOrderQty, q - 1))} aria-label="Decrease quantity">−</button>
                 <b>{qty}</b>
                 <button type="button" onClick={() => setQty((q) => q + 1)} aria-label="Increase quantity">+</button>
                 <span className="unit-lbl">Piece(s)</span>
               </div>
-              <div className="pdp-min-order">Min. Order Quantity: {MIN_ORDER_QTY} Pieces</div>
+              <div className="pdp-min-order">Min. Order Quantity: {minOrderQty} Pieces</div>
 
               {total != null ? (
                 <div className="pdp-total">Total: <b>{inr(Math.round(total * 100) / 100)}</b></div>
@@ -316,23 +492,10 @@ export default function ProductDetailView({ product }: { product: ProductDetail 
               </div>
               <Link
                 href="/contact"
-                className={`btn pdp-quote-bulk-btn${activeTier.discountPct === null ? " active" : ""}`}
+                className={`btn pdp-quote-bulk-btn${unitPrice == null ? " active" : ""}`}
               >
                 Request Quote for Bulk
               </Link>
-
-              <button
-                type="button"
-                className={`pdp-wishlist-btn pdp-wishlist-btn-full${wishlisted ? " active" : ""}`}
-                onClick={() => toggleItem(product)}
-                aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
-                aria-pressed={wishlisted}
-              >
-                <svg viewBox="0 0 24 24" fill={wishlisted ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                </svg>
-                {wishlisted ? "Saved to Wishlist" : "Save to Wishlist"}
-              </button>
             </aside>
           </div>
 

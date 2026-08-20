@@ -87,7 +87,7 @@ export default function Header() {
               {count > 0 && <span className="nav-cart-badge">{count}</span>}
             </Link>
             <Link href={resolveHref("#cta", pathname)} className="btn btn-ghost desk-only">Request Quote</Link>
-            <Link href={resolveHref("#cta", pathname)} className="btn btn-primary">Become Seller</Link>
+            <Link href="/become-seller" className="btn btn-primary">Become Seller</Link>
             <button className="burger" id="burger" aria-label="Open menu" onClick={openDrawer}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                 <path d="M3 6h18M3 12h18M3 18h18" />
@@ -126,7 +126,7 @@ export default function Header() {
             <Link href="/cart" className="btn btn-ghost" onClick={closeDrawer}>
               Cart{count > 0 ? ` (${count})` : ""}
             </Link>
-            <Link href={resolveHref("#cta", pathname)} className="btn btn-primary" onClick={closeDrawer}>Become Seller</Link>
+            <Link href="/become-seller" className="btn btn-primary" onClick={closeDrawer}>Become Seller</Link>
           </div>
         </div>
       </div>

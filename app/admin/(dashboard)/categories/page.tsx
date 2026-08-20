@@ -49,7 +49,6 @@ export default function AdminCategoriesPage() {
   const [metaTitle, setMetaTitle] = useState("");
   const [metaDescription, setMetaDescription] = useState("");
   const [fuelType, setFuelType] = useState("");
-  const [icon, setIcon] = useState("");
   const [parentId, setParentId] = useState("");
   const [priority, setPriority] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -76,7 +75,7 @@ export default function AdminCategoriesPage() {
 
   const openCreate = () => {
     setEditing(null);
-    setName(""); setDescription(""); setMetaTitle(""); setMetaDescription(""); setFuelType(""); setIcon(""); setParentId(""); setPriority(""); setImageFile(null);
+    setName(""); setDescription(""); setMetaTitle(""); setMetaDescription(""); setFuelType(""); setParentId(""); setPriority(""); setImageFile(null);
   };
 
   const openEdit = (c: Category) => {
@@ -85,7 +84,7 @@ export default function AdminCategoriesPage() {
     setName(String(c.name ?? "")); setDescription(String(c.description ?? ""));
     setMetaTitle(String(c.metaTitle ?? "")); setMetaDescription(String(c.metaDescription ?? ""));
     setFuelType(String(c.fuelType ?? ""));
-    setIcon(String(c.icon ?? "")); setParentId(String(c.parentId ?? "")); setPriority(String(c.priority ?? "")); setImageFile(null);
+    setParentId(String(c.parentId ?? "")); setPriority(String(c.priority ?? "")); setImageFile(null);
     formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
@@ -116,7 +115,6 @@ export default function AdminCategoriesPage() {
     if (metaTitle) fd.append("metaTitle", metaTitle);
     if (metaDescription) fd.append("metaDescription", metaDescription);
     if (fuelType) fd.append("fuelType", fuelType);
-    if (icon) fd.append("icon", icon);
     if (parentId) fd.append("parentId", parentId);
     if (priority) fd.append("priority", priority);
     if (imageFile) fd.append("image", imageFile);
@@ -124,7 +122,7 @@ export default function AdminCategoriesPage() {
       if (editing) { await categoriesApi.update(editing.id, fd); toast.success("Category updated."); }
       else { await categoriesApi.create(fd); toast.success("Category created."); }
       setEditing(null);
-      setName(""); setDescription(""); setMetaTitle(""); setMetaDescription(""); setFuelType(""); setIcon(""); setParentId(""); setPriority(""); setImageFile(null);
+      setName(""); setDescription(""); setMetaTitle(""); setMetaDescription(""); setFuelType(""); setParentId(""); setPriority(""); setImageFile(null);
       load();
     } catch (err) {
       toast.error(err instanceof AdminApiError ? err.message : "Could not save category.");
@@ -187,7 +185,6 @@ export default function AdminCategoriesPage() {
               {FUEL_TYPES.map((f) => <option key={f} value={f}>{f.replace(/_/g, " ")}</option>)}
             </select>
           </div>
-          <div className="field"><label>Icon</label><input className="input" value={icon} onChange={(e) => setIcon(e.target.value)} placeholder="e.g. cng, storage-tank" /></div>
           <div className="field"><label>Meta title</label><input className="input" value={metaTitle} onChange={(e) => setMetaTitle(e.target.value)} /></div>
           <div className="field"><label>Meta description</label><input className="input" value={metaDescription} onChange={(e) => setMetaDescription(e.target.value)} /></div>
           <div className="field full"><label>Description</label><textarea className="input" value={description} onChange={(e) => setDescription(e.target.value)} /></div>

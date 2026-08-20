@@ -1,4 +1,12 @@
+import { useMemo } from "react";
 import { SERVICES, STATS, BRANDS, HOW_IT_WORKS, BUYERS_LOVE } from "@/lib/data";
+import type { ApiBrand, ApiService } from "@/lib/publicApi";
+
+const DEFAULT_SERVICE_ICON = `<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 15l2 2 4-4"/>`;
+
+function normalizeApiServices(apiServices: ApiService[]) {
+  return apiServices.map((s) => ({ t: s.name, d: s.summary, i: DEFAULT_SERVICE_ICON }));
+}
 
 export function WhySection() {
   return (
@@ -89,8 +97,9 @@ export function WhySection() {
   );
 }
 
-export function ServicesSection() {
+export function ServicesSection({ apiServices = [] }: { apiServices?: ApiService[] }) {
   const delays = ["", " d1", " d2", " d3"];
+  const services = useMemo(() => [...SERVICES, ...normalizeApiServices(apiServices)], [apiServices]);
   return (
     <section className="section" id="services">
       <div className="wrap">
@@ -100,8 +109,8 @@ export function ServicesSection() {
           <p className="reveal d2">Beyond the marketplace — full engineering support from supply to commissioning and lifecycle care.</p>
         </div>
         <div className="svc-grid">
-          {SERVICES.map((s, i) => (
-            <div key={s.t} className={`svc reveal${delays[i % 4]}`}>
+          {services.map((s, i) => (
+            <div key={`${s.t}-${i}`} className={`svc reveal${delays[i % 4]}`}>
               <span className="num">0{i + 1}</span>
               <div className="svc-ic">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" dangerouslySetInnerHTML={{ __html: s.i }} />
@@ -140,9 +149,10 @@ export function StatsSection() {
   );
 }
 
-export function BrandsSection() {
+export function BrandsSection({ apiBrands = [] }: { apiBrands?: ApiBrand[] }) {
   const gearIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>`;
-  const combined = [...BRANDS, ...BRANDS];
+  const allBrands = [...BRANDS, ...apiBrands.map((b) => b.name)];
+  const combined = [...allBrands, ...allBrands];
   return (
     <section className="brands">
       <div className="wrap"><p className="lbl">Compatible with equipment from leading industrial brands</p></div>

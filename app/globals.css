@@ -606,6 +606,37 @@ ul { list-style: none; }
 .search-cat svg { width: 16px; height: 16px; }
 .search-sep { width: 1px; height: 34px; background: var(--line); }
 
+.search-cat-wrap { position: relative; }
+.search-cat-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 30;
+  min-width: 220px;
+  max-height: 320px;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-lg);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+}
+.search-cat-menu button {
+  text-align: left;
+  padding: 10px 12px;
+  border: none;
+  background: none;
+  border-radius: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: .92rem;
+  color: var(--ink);
+  cursor: pointer;
+}
+.search-cat-menu button:hover { background: var(--gray); }
+.search-cat-menu button.active { color: var(--blue); font-weight: 600; background: var(--grad-soft); }
+
 .quick-tags {
   display: flex;
   gap: 10px;
@@ -730,6 +761,13 @@ ul { list-style: none; }
 }
 
 .cat-circle svg { width: 42px; height: 42px; transition: .4s; }
+.cat-circle img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  transition: .4s;
+}
 
 .cat:hover .cat-circle {
   transform: translateY(-8px) scale(1.05);
@@ -779,6 +817,14 @@ ul { list-style: none; }
 
 .prod-img svg { width: 70%; height: 70%; transition: transform .5s var(--ease); }
 .prod:hover .prod-img svg { transform: scale(1.06); }
+/* Real product photos are injected as "<span><img ...></span>" via
+   dangerouslySetInnerHTML — the inline img has width/height:100%, but that
+   can't resolve against its wrapping <span> (an inline box with no definite
+   height of its own), so the image fell back to its natural size instead of
+   filling the 180px box. Position it absolutely against .prod-img instead,
+   which already establishes the positioning context. */
+.prod-img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform .5s var(--ease); }
+.prod:hover .prod-img img { transform: scale(1.06); }
 
 .prod-badge {
   position: absolute;
@@ -2236,6 +2282,10 @@ input[type=range].f-slider::-webkit-slider-thumb { -webkit-appearance: none; wid
 .f-brand-list { max-height: 190px; overflow-y: auto; padding-right: 4px; }
 .f-brand-list::-webkit-scrollbar { width: 5px; }
 .f-brand-list::-webkit-scrollbar-thumb { background: var(--line); border-radius: 10px; }
+
+.f-cat-list { max-height: 220px; overflow-y: auto; padding-right: 4px; }
+.f-cat-list::-webkit-scrollbar { width: 5px; }
+.f-cat-list::-webkit-scrollbar-thumb { background: var(--line); border-radius: 10px; }
 .f-banner { margin-top: 22px; border-radius: var(--radius); overflow: hidden; background: var(--grad); padding: 22px 20px; color: #fff; position: relative; }
 .f-banner b { font-family: 'Poppins'; display: block; font-size: .98rem; margin-bottom: 4px; }
 .f-banner p { font-size: .82rem; color: rgba(255,255,255,.9); margin-bottom: 14px; }
@@ -2564,7 +2614,7 @@ input[type=range].f-slider::-webkit-slider-thumb { -webkit-appearance: none; wid
 .pdp-thumb {
   width: 56px; height: 56px; border-radius: 12px; border: 1.5px solid var(--line);
   background: linear-gradient(160deg,#eef4f9,#e2edf6); display: grid; place-items: center;
-  overflow: hidden; cursor: pointer; transition: .2s;
+  overflow: hidden; cursor: pointer; transition: .2s; padding: 0; font: inherit;
 }
 .pdp-thumb svg { width: 60%; height: 60%; }
 .pdp-thumb.active, .pdp-thumb:hover { border-color: var(--blue); }
@@ -2585,11 +2635,11 @@ input[type=range].f-slider::-webkit-slider-thumb { -webkit-appearance: none; wid
 
 /* clamp()-based fluid sizing — always stays on one line at any viewport
    width instead of relying on a breakpoint to switch to wrapping. */
-.pdp-trust-strip { display: flex; flex-wrap: nowrap; gap: clamp(4px, 2vw, 14px); padding: 22px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); margin-top: 24px; }
-.pdp-trust-item { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; flex: 1 1 0; min-width: 0; }
+.pdp-trust-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(84px, 1fr)); column-gap: 8px; row-gap: 22px; padding: 22px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); margin-top: 24px; }
+.pdp-trust-item { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 8px; text-align: center; }
 .pdp-trust-item span { width: clamp(32px, 9vw, 48px); height: clamp(32px, 9vw, 48px); border-radius: 50%; background: var(--grad-soft); display: grid; place-items: center; color: var(--blue); flex-shrink: 0; }
 .pdp-trust-item svg { width: clamp(14px, 4vw, 22px); height: clamp(14px, 4vw, 22px); }
-.pdp-trust-item small { font-size: clamp(.56rem, 1.8vw, .7rem); font-weight: 600; color: var(--ink-soft); line-height: 1.25; }
+.pdp-trust-item small { font-size: clamp(.62rem, 1.8vw, .74rem); font-weight: 600; color: var(--ink-soft); line-height: 1.3; max-width: 108px; }
 
 /* Buy box (right rail) */
 .pdp-buybox { border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; background: #fff; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; position: sticky; top: 96px; }

@@ -1,21 +1,12 @@
-"use client";
-import { useScrollAnimations } from "@/lib/useScrollAnimations";
-import { PageBanner, ListingSearchBand, ListingCTASection } from "@/components/ProductsPageSections";
-import ProductListing from "@/components/ProductListing";
+import { fetchApiProducts, fetchApiCategories, fetchApiBrands } from "@/lib/publicApi";
+import ProductsPageClient from "@/components/ProductsPageClient";
 
-export default function ProductsPage() {
-  useScrollAnimations();
+export default async function ProductsPage() {
+  const [apiProducts, apiCategories, apiBrands] = await Promise.all([
+    fetchApiProducts({ limit: 100 }),
+    fetchApiCategories({ flat: true, limit: 100 }),
+    fetchApiBrands({ limit: 100 }),
+  ]);
 
-  return (
-    <>
-      <PageBanner />
-      <ListingSearchBand />
-      <section className="listing-section">
-        <div className="wrap">
-          <ProductListing />
-        </div>
-      </section>
-      <ListingCTASection />
-    </>
-  );
+  return <ProductsPageClient apiProducts={apiProducts} apiCategories={apiCategories} apiBrands={apiBrands} />;
 }

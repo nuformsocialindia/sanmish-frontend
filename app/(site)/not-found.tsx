@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { CATEGORIES } from "@/lib/data";
 
 export default function NotFound() {
   return (
@@ -17,23 +16,6 @@ export default function NotFound() {
           <div className="cta-btns" style={{ justifyContent: "center", marginTop: 24 }}>
             <Link href="/" className="btn btn-primary">Go to Homepage</Link>
             <Link href="/products" className="btn btn-ghost">Browse Products</Link>
-          </div>
-        </div>
-
-        <div style={{ marginTop: 56 }}>
-          <div className="section-head" style={{ marginBottom: 32 }}>
-            <h2 style={{ fontSize: "1.5rem" }}>Or explore a <span className="grad-text">category</span></h2>
-          </div>
-          <div className="cat-grid">
-            {CATEGORIES.slice(0, 6).map((cat) => (
-              <Link key={cat.label} href="/products" className="cat">
-                <div className="cat-circle">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" dangerouslySetInnerHTML={{ __html: cat.icon }} />
-                </div>
-                <span>{cat.label}</span>
-                <small>{cat.sub}</small>
-              </Link>
-            ))}
           </div>
         </div>
       </div>

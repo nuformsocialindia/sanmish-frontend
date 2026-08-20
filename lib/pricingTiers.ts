@@ -31,6 +31,26 @@ export function unitPriceForQty(basePrice: number, qty: number): number | null {
   return Math.round(basePrice * (1 - tier.discountPct / 100) * 100) / 100;
 }
 
+// Mirrors the backend's computeProductPricing (docs/public-api.md /
+// docs/admin-api.md) so a real product's GST split stays correct even when a
+// volume-pricing slab changes its unit price on the detail page.
+export type UnitPricing = { basePrice: number; gstAmount: number; grandTotal: number };
+
+export function computeUnitPricing(
+  sellingPrice: number,
+  gstRate: number,
+  priceIncludesGst: boolean,
+  gstApplicable: boolean
+): UnitPricing {
+  if (!gstApplicable) return { basePrice: sellingPrice, gstAmount: 0, grandTotal: sellingPrice };
+  if (priceIncludesGst) {
+    const basePrice = sellingPrice / (1 + gstRate / 100);
+    return { basePrice, gstAmount: sellingPrice - basePrice, grandTotal: sellingPrice };
+  }
+  const gstAmount = (sellingPrice * gstRate) / 100;
+  return { basePrice: sellingPrice, gstAmount, grandTotal: sellingPrice + gstAmount };
+}
+
 // Deterministic pseudo-rating (3.5–4.8) so the same product always shows the
 // same "Trusted" score without a real reviews backend yet.
 export function mockRating(slug: string): number {

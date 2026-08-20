@@ -5,27 +5,12 @@
 export const NAV_LINKS = [
   { href: "#home", label: "Home" },
   { href: "/products", label: "Products" },
-  { href: "#categories", label: "Categories" },
+  { href: "/categories", label: "Categories" },
   { href: "#why", label: "Manufacturers" },
   { href: "/suppliers", label: "Suppliers" },
   { href: "/services", label: "Services" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
-];
-
-export const CATEGORIES = [
-  { icon: `<rect x="5" y="2" width="14" height="20" rx="4"/><path d="M9 6h6M12 10v6"/>`, label: "CNG", sub: "12 groups" },
-  { icon: `<path d="M4 20h16M6 20V10l6-6 6 6v10M10 14h4"/>`, label: "CBG", sub: "6 groups" },
-  { icon: `<path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5S5 13 5 15a7 7 0 0 0 7 7z"/>`, label: "Bio Gas", sub: "7 groups" },
-  { icon: `<path d="M3.5 18a9 9 0 1 1 17 0"/><path d="M12 18l4.5-5.5"/><circle cx="12" cy="18" r="1.6"/>`, label: "Flow Meters", sub: "Metering" },
-  { icon: `<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>`, label: "Compressors", sub: "Packaged" },
-  { icon: `<ellipse cx="12" cy="5" rx="7" ry="3"/><path d="M5 5v14a7 3 0 0 0 14 0V5"/><path d="M5 12a7 3 0 0 0 14 0"/>`, label: "Storage Tanks", sub: "Cascades" },
-  { icon: `<rect x="4" y="2" width="16" height="20" rx="3"/><path d="M9 22v-4h6v4M8 6h.01M8 10h.01"/>`, label: "Dispensers", sub: "All fuels" },
-  { icon: `<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>`, label: "Safety Equipment", sub: "Sensors" },
-  { icon: `<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/>`, label: "Automation", sub: "PLC panels" },
-  { icon: `<path d="M4 6h10a4 4 0 0 1 4 4v0a4 4 0 0 1-4 4H4M18 10h2M4 6V4M4 14v6"/>`, label: "Pipelines", sub: "Networks" },
-  { icon: `<path d="M12 3v6M12 15v6M3 12h6M15 12h6"/><circle cx="12" cy="12" r="3"/>`, label: "Industrial Valves", sub: "Regulators" },
-  { icon: `<rect x="2" y="4" width="20" height="16" rx="2"/><path d="M6 8h4M6 12h4M6 16h4M15 8v8"/>`, label: "Control Panels", sub: "Electrical" },
 ];
 
 export const FEATURE_HIGHLIGHTS = [
@@ -51,23 +36,6 @@ export const FEATURE_HIGHLIGHTS = [
   },
 ];
 
-
-const svgDisp = `<svg viewBox="0 0 120 120" fill="none" stroke="#3E79BD" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><rect x="38" y="20" width="44" height="80" rx="8" fill="#fff"/><rect x="48" y="32" width="24" height="18" rx="3" fill="#7BB145" stroke="none"/><circle cx="60" cy="70" r="9"/></svg>`;
-const svgComp = `<svg viewBox="0 0 120 120" fill="none" stroke="#7BB145" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><rect x="24" y="44" width="72" height="44" rx="8" fill="#fff"/><circle cx="46" cy="66" r="11"/><path d="M60 44V28h20"/><rect x="76" y="22" width="14" height="14" rx="3" fill="#fff"/></svg>`;
-const svgTank = `<svg viewBox="0 0 120 120" fill="none" stroke="#3E79BD" stroke-width="3.5"><rect x="34" y="24" width="24" height="72" rx="12" fill="#fff"/><rect x="64" y="34" width="22" height="62" rx="11" fill="#fff"/></svg>`;
-const svgValve = `<svg viewBox="0 0 120 120" fill="none" stroke="#7BB145" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="60" cy="60" r="14"/><path d="M60 46V26h20M60 74v20H40M46 60H26v20"/></svg>`;
-const svgSkid = `<svg viewBox="0 0 120 120" fill="none" stroke="#3E79BD" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><rect x="24" y="30" width="72" height="60" rx="8"/><path d="M38 44h20M38 56h30M38 68h16"/><circle cx="80" cy="46" r="5" fill="#7BB145" stroke="none"/></svg>`;
-
-export const PRODUCTS = [
-  { t: "High-Flow CNG Dispenser", c: "CNG", s: "Kirloskar Verified", p: "₹ 6,80,000", b: "Bestseller", ic: svgDisp },
-  { t: "CBG Refueling Unit", c: "CBG", s: "GreenFuel Systems", p: "On Request", b: "New", ic: svgDisp },
-  { t: "Packaged Gas Compressor", c: "Compressors", s: "Atlas Pro Systems", p: "₹ 12,50,000", b: "Popular", ic: svgComp },
-  { t: "Cascade Storage System", c: "Storage", s: "CylinTech India", p: "₹ 9,20,000", b: "Featured", ic: svgTank },
-  { t: "Bio-CNG Filling Station", c: "CBG", s: "GreenFuel EPC", p: "On Request", b: "Turnkey", ic: svgDisp },
-  { t: "Priority Panel Assembly", c: "CNG", s: "FlowLine Controls", p: "₹ 2,40,000", b: "In Stock", ic: svgComp },
-  { t: "Gas Storage Vessel", c: "Storage", s: "PressureSafe Ltd", p: "₹ 15,00,000", b: "Certified", ic: svgTank },
-  { t: "Biogas Purification Skid", c: "Bio Gas", s: "PuriGas Solutions", p: "On Request", b: "Turnkey", ic: svgComp },
-];
 
 export const SERVICES = [
   { t: "Equipment Supply", d: "Verified CNG, CBG, biogas and hydrogen equipment sourced nationwide.", i: `<path d="M16 16h6M19 13v6"/><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><circle cx="7" cy="18" r="2"/>` },
@@ -372,61 +340,6 @@ export const HELP_CENTER_FAQ = [
       { q: "How do I delete my account?", a: "Contact our support team or refer to our Privacy Policy for the account deletion process and what happens to your data." },
     ],
   },
-];
-
-// ============================================================
-// Products listing page data
-// ============================================================
-
-export const FILTER_CATEGORIES = [
-  { value: "CNG", label: "CNG Equipment", count: 612, defaultChecked: true },
-  { value: "CBG", label: "CBG Systems", count: 348 },
-  { value: "Bio Gas", label: "Bio Gas Plants", count: 204 },
-  { value: "Compressors", label: "Compressors", count: 387 },
-  { value: "Storage", label: "Storage & Cascade", count: 256 },
-];
-
-export const SUPPLIER_TYPES = [
-  { value: "verified", label: "Verified Manufacturer", defaultChecked: true },
-  { value: "oem", label: "Authorized OEM" },
-  { value: "turnkey", label: "Turnkey / EPC" },
-];
-
-export const BRAND_FILTERS = ["Kirloskar", "GreenFuel", "Atlas", "CylinTech", "PressureSafe", "FlowLine"];
-
-export const PRODUCT_CATALOGUE = [
-  { t: "High-Flow CNG Dispenser", c: "CNG", s: "Kirloskar Verified", brand: "Kirloskar", type: "verified", p: 680000, b: "Bestseller", ic: svgDisp },
-  { t: "CBG Refueling Unit", c: "CBG", s: "GreenFuel Systems", brand: "GreenFuel", type: "verified", p: 940000, b: "New", ic: svgDisp },
-  { t: "Packaged Gas Compressor", c: "Compressors", s: "Atlas Pro Systems", brand: "Atlas", type: "oem", p: 1250000, b: "Popular", ic: svgComp },
-  { t: "Cascade Storage System", c: "Storage", s: "CylinTech India", brand: "CylinTech", type: "verified", p: 920000, b: "Featured", ic: svgTank },
-  { t: "Bio-CNG Filling Station", c: "CBG", s: "GreenFuel EPC", brand: "GreenFuel", type: "turnkey", p: 1850000, b: "Turnkey", ic: svgDisp },
-  { t: "Priority Panel Assembly", c: "CNG", s: "FlowLine Controls", brand: "FlowLine", type: "verified", p: 240000, b: "In Stock", ic: svgComp },
-  { t: "Gas Storage Vessel", c: "Storage", s: "PressureSafe Ltd", brand: "PressureSafe", type: "verified", p: 1500000, b: "Certified", ic: svgTank },
-  { t: "Biogas Purification Skid", c: "Bio Gas", s: "PuriGas Solutions", brand: "PuriGas", type: "turnkey", p: 1120000, b: "Turnkey", ic: svgSkid },
-  { t: "Twin-Cylinder CNG Compressor", c: "Compressors", s: "Atlas Pro Systems", brand: "Atlas", type: "oem", p: 980000, b: "Popular", ic: svgComp },
-  { t: "Digital Sequencing Panel", c: "CNG", s: "FlowLine Controls", brand: "FlowLine", type: "verified", p: 186000, b: "In Stock", ic: svgValve },
-  { t: "CBG Bottling Unit", c: "CBG", s: "GreenFuel Systems", brand: "GreenFuel", type: "verified", p: 1340000, b: "New", ic: svgSkid },
-  { t: "High-Pressure Regulator Set", c: "CNG", s: "Kirloskar Verified", brand: "Kirloskar", type: "verified", p: 56000, b: "In Stock", ic: svgValve },
-  { t: "Mobile Cascade Trailer", c: "Storage", s: "CylinTech India", brand: "CylinTech", type: "verified", p: 2100000, b: "Featured", ic: svgTank },
-  { t: "Biogas Digester Skid", c: "Bio Gas", s: "PuriGas Solutions", brand: "PuriGas", type: "turnkey", p: 1680000, b: "Turnkey", ic: svgSkid },
-  { t: "Dual-Hose CNG Dispenser", c: "CNG", s: "Kirloskar Verified", brand: "Kirloskar", type: "verified", p: 720000, b: "Bestseller", ic: svgDisp },
-  { t: "Compact CBG Compressor", c: "Compressors", s: "Atlas Pro Systems", brand: "Atlas", type: "oem", p: 860000, b: "Popular", ic: svgComp },
-  { t: "Bio Gas Scrubber Unit", c: "Bio Gas", s: "PuriGas Solutions", brand: "PuriGas", type: "verified", p: 540000, b: "New", ic: svgSkid },
-  { t: "Cylinder Test Bench", c: "Storage", s: "PressureSafe Ltd", brand: "PressureSafe", type: "verified", p: 410000, b: "Certified", ic: svgTank },
-  { t: "Control Valve Manifold", c: "CNG", s: "FlowLine Controls", brand: "FlowLine", type: "verified", p: 128000, b: "In Stock", ic: svgValve },
-  { t: "CBG Turnkey Filling Skid", c: "CBG", s: "GreenFuel EPC", brand: "GreenFuel", type: "turnkey", p: 2450000, b: "Turnkey", ic: svgSkid },
-  { t: "Reciprocating Gas Compressor", c: "Compressors", s: "Atlas Pro Systems", brand: "Atlas", type: "oem", p: 1420000, b: "Popular", ic: svgComp },
-  { t: "Standing Cascade Rack", c: "Storage", s: "CylinTech India", brand: "CylinTech", type: "verified", p: 760000, b: "Featured", ic: svgTank },
-  { t: "Biomethane Compression Unit", c: "Bio Gas", s: "PuriGas Solutions", brand: "PuriGas", type: "turnkey", p: 1960000, b: "Turnkey", ic: svgComp },
-  { t: "Emergency Shut-off Valve", c: "CNG", s: "FlowLine Controls", brand: "FlowLine", type: "verified", p: 64000, b: "In Stock", ic: svgValve },
-  { t: "CNG Kiosk Dispenser", c: "CNG", s: "Kirloskar Verified", brand: "Kirloskar", type: "verified", p: 590000, b: "Bestseller", ic: svgDisp },
-  { t: "Booster Compressor Skid", c: "Compressors", s: "Atlas Pro Systems", brand: "Atlas", type: "oem", p: 1080000, b: "Popular", ic: svgComp },
-  { t: "CBG Storage Cascade", c: "Storage", s: "CylinTech India", brand: "CylinTech", type: "verified", p: 1030000, b: "Featured", ic: svgTank },
-  { t: "Bio Gas Flare Stack", c: "Bio Gas", s: "PuriGas Solutions", brand: "PuriGas", type: "verified", p: 320000, b: "New", ic: svgSkid },
-  { t: "Pressure Relief Assembly", c: "Storage", s: "PressureSafe Ltd", brand: "PressureSafe", type: "verified", p: 96000, b: "Certified", ic: svgValve },
-  { t: "CBG Priority Panel", c: "CBG", s: "GreenFuel Systems", brand: "GreenFuel", type: "verified", p: 210000, b: "New", ic: svgValve },
-  { t: "Turnkey CNG Station Package", c: "CNG", s: "Kirloskar Verified", brand: "Kirloskar", type: "turnkey", p: 6800000, b: "Turnkey", ic: svgDisp },
-  { t: "Skid-Mounted Bio Compressor", c: "Bio Gas", s: "PuriGas Solutions", brand: "PuriGas", type: "oem", p: 1560000, b: "Popular", ic: svgComp },
 ];
 
 // ============================================================
