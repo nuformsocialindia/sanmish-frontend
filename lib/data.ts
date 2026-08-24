@@ -3,7 +3,7 @@
 // ============================================================
 
 export const NAV_LINKS = [
-  { href: "#home", label: "Home" },
+  { href: "/", label: "Home" },
   { href: "/products", label: "Products" },
   { href: "/categories", label: "Categories" },
   { href: "#why", label: "Manufacturers" },

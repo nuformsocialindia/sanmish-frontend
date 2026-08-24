@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { NAV_LINKS } from "@/lib/data";
-import { resolveHref } from "@/lib/nav";
+import { resolveHref, scrollToTopEased } from "@/lib/nav";
 import { useCart } from "@/lib/cart-context";
 import { useWishlist } from "@/lib/wishlist-context";
 import { useAuth } from "@/lib/auth-context";
@@ -37,18 +37,20 @@ export default function Header() {
     <>
       <header className={`header${scrolled ? " scrolled" : ""}`} id="header">
         <div className="wrap nav">
-          <Link href={resolveHref("#home", pathname)} className="brand" aria-label="SANMISH home">
+          <Link href="/" className="brand" aria-label="SANMISH home" onClick={() => scrollToTopEased()}>
             <Image src="/SanmishXLOGO.jpg" alt="SANMISH — Clean Energy Smarter Solutions logo" width={93} height={58} style={{ height: 58, width: "auto" }} priority />
           </Link>
           <nav className="nav-menu" aria-label="Primary">
             {NAV_LINKS.map((link) => {
               const isActive = link.href === pathname;
+              const resolved = resolveHref(link.href, pathname);
               return (
                 <Link
                   key={link.label}
-                  href={resolveHref(link.href, pathname)}
+                  href={resolved}
                   className={isActive ? "active" : undefined}
                   aria-current={isActive ? "page" : undefined}
+                  onClick={resolved.includes("#") ? undefined : () => scrollToTopEased()}
                 >
                   {link.label}
                 </Link>

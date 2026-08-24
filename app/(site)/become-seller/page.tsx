@@ -12,14 +12,6 @@ const BUSINESS_TYPES: { value: VendorBusinessType; label: string }[] = [
   { value: "service_provider", label: "Service Provider" },
 ];
 
-const FUEL_TYPES = [
-  { value: "CNG", label: "CNG" },
-  { value: "CBG", label: "CBG" },
-  { value: "BIO_GAS", label: "Bio Gas" },
-  { value: "HYDROGEN", label: "Hydrogen" },
-  { value: "MULTI_FUEL", label: "Multi-Fuel" },
-];
-
 export default function BecomeSellerPage() {
   const [businessName, setBusinessName] = useState("");
   const [vendorName, setVendorName] = useState("");
@@ -30,14 +22,9 @@ export default function BecomeSellerPage() {
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
   const [gstin, setGstin] = useState("");
-  const [fuelTypes, setFuelTypes] = useState<string[]>([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-
-  const toggleFuelType = (value: string) => {
-    setFuelTypes((prev) => (prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]));
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,7 +57,6 @@ export default function BecomeSellerPage() {
         city: city.trim() || undefined,
         state: state.trim() || undefined,
         gstin: gstin.trim() || undefined,
-        fuelTypes: fuelTypes.length ? fuelTypes : undefined,
       });
       setSubmitted(true);
     } catch (err) {
@@ -90,7 +76,7 @@ export default function BecomeSellerPage() {
       heading={<>List your equipment to <span className="grad-text">serious B2B buyers</span></>}
       subtext="Submit your business details for verification. Once our team approves your application, you'll get a confirmation email and vendor portal access."
     >
-      <div className="auth-card">
+      <div className="auth-card auth-card--wide">
         {submitted ? (
           <div className="auth-success">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
@@ -107,28 +93,32 @@ export default function BecomeSellerPage() {
             <h2 className="auth-step-title">Seller application</h2>
             <p className="auth-step-sub">Tell us about your business — we&rsquo;ll verify and get back to you.</p>
 
-            <div className="field">
-              <label htmlFor="bs-business">Business / Company Name <span className="req">*</span></label>
-              <input id="bs-business" type="text" placeholder="Your company name" value={businessName} onChange={(e) => setBusinessName(e.target.value)} autoFocus />
+            <div className="form-grid-2">
+              <div className="field">
+                <label htmlFor="bs-business">Business / Company Name <span className="req">*</span></label>
+                <input id="bs-business" type="text" placeholder="Your company name" value={businessName} onChange={(e) => setBusinessName(e.target.value)} autoFocus />
+              </div>
+              <div className="field">
+                <label htmlFor="bs-name">Contact Person <span className="req">*</span></label>
+                <input id="bs-name" type="text" placeholder="Your full name" value={vendorName} onChange={(e) => setVendorName(e.target.value)} />
+              </div>
             </div>
-            <div className="field" style={{ marginTop: 16 }}>
-              <label htmlFor="bs-name">Contact Person <span className="req">*</span></label>
-              <input id="bs-name" type="text" placeholder="Your full name" value={vendorName} onChange={(e) => setVendorName(e.target.value)} />
-            </div>
-            <div className="field" style={{ marginTop: 16 }}>
-              <label htmlFor="bs-email">Work Email <span className="req">*</span></label>
-              <input id="bs-email" type="email" placeholder="you@company.com" value={email} onChange={(e) => setEmail(e.target.value)} />
-            </div>
-            <div className="field" style={{ marginTop: 16 }}>
-              <label htmlFor="bs-mobile">Mobile Number <span className="req">*</span></label>
-              <input
-                id="bs-mobile"
-                type="tel"
-                inputMode="numeric"
-                placeholder="10-digit mobile number"
-                value={mobile}
-                onChange={(e) => setMobile(e.target.value.replace(/[^0-9]/g, "").slice(0, 10))}
-              />
+            <div className="form-grid-2" style={{ marginTop: 16 }}>
+              <div className="field">
+                <label htmlFor="bs-email">Email <span className="req">*</span></label>
+                <input id="bs-email" type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+              </div>
+              <div className="field">
+                <label htmlFor="bs-mobile">Mobile Number <span className="req">*</span></label>
+                <input
+                  id="bs-mobile"
+                  type="tel"
+                  inputMode="numeric"
+                  placeholder="10-digit mobile number"
+                  value={mobile}
+                  onChange={(e) => setMobile(e.target.value.replace(/[^0-9]/g, "").slice(0, 10))}
+                />
+              </div>
             </div>
             <div className="field" style={{ marginTop: 16 }}>
               <label htmlFor="bs-type">Business Type <span className="req">*</span></label>
@@ -142,12 +132,12 @@ export default function BecomeSellerPage() {
               <label htmlFor="bs-address">Company Address <span className="req">*</span></label>
               <textarea id="bs-address" placeholder="Registered office / warehouse address" value={companyAddress} onChange={(e) => setCompanyAddress(e.target.value)} />
             </div>
-            <div style={{ display: "flex", gap: 12, marginTop: 16 }}>
-              <div className="field" style={{ flex: 1 }}>
+            <div className="form-grid-2" style={{ marginTop: 16 }}>
+              <div className="field">
                 <label htmlFor="bs-city">City</label>
                 <input id="bs-city" type="text" placeholder="City" value={city} onChange={(e) => setCity(e.target.value)} />
               </div>
-              <div className="field" style={{ flex: 1 }}>
+              <div className="field">
                 <label htmlFor="bs-state">State</label>
                 <input id="bs-state" type="text" placeholder="State" value={state} onChange={(e) => setState(e.target.value)} />
               </div>
@@ -155,16 +145,6 @@ export default function BecomeSellerPage() {
             <div className="field" style={{ marginTop: 16 }}>
               <label htmlFor="bs-gstin">GSTIN</label>
               <input id="bs-gstin" type="text" placeholder="Optional" value={gstin} onChange={(e) => setGstin(e.target.value)} />
-            </div>
-            <div className="field" style={{ marginTop: 16 }}>
-              <label>Fuel Types You Supply</label>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 6 }}>
-                {FUEL_TYPES.map((f) => (
-                  <label key={f.value} className="check" style={{ padding: "8px 14px", borderRadius: 999, background: "var(--gray)", cursor: "pointer" }}>
-                    <input type="checkbox" checked={fuelTypes.includes(f.value)} onChange={() => toggleFuelType(f.value)} /> {f.label}
-                  </label>
-                ))}
-              </div>
             </div>
 
             {error && <p className="auth-error">{error}</p>}

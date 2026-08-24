@@ -7,6 +7,7 @@ export type ProductDetail = {
   slug: string;
   title: string;
   category: string;
+  categorySlug?: string;
   seller: string;
   brand?: string;
   type?: string;
@@ -50,6 +51,7 @@ function fromApi(apiProducts: ApiProductSummary[]): ProductDetail[] {
     slug: p.slug,
     title: p.title,
     category: p.category?.name ?? p.fuelType,
+    categorySlug: p.category?.slug,
     seller: p.vendor?.businessName ?? "Verified Seller",
     brand: p.brand?.name,
     priceLabel: p.quoteOnly || p.sellingPrice == null ? "On Request" : inr(p.sellingPrice),

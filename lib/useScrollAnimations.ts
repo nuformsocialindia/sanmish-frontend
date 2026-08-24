@@ -1,10 +1,13 @@
 "use client";
-import { useEffect } from "react";
+import { useLayoutEffect } from "react";
 
 // Drives .reveal scroll-in animations and [data-count] animated counters,
 // shared across every page (see original static HTML's inline <script>).
+// Uses useLayoutEffect (not useEffect) so above-the-fold .reveal elements get
+// their "in" class added before the browser paints — otherwise every route
+// change briefly flashes the whole page at opacity:0 while the effect runs.
 export function useScrollAnimations() {
-  useEffect(() => {
+  useLayoutEffect(() => {
     const io = new IntersectionObserver(
       (es) =>
         es.forEach((e) => {

@@ -32,7 +32,7 @@
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
-html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+html { -webkit-text-size-adjust: 100%; overflow-anchor: none; }
 
 body {
   font-family: 'Inter', system-ui, sans-serif;
@@ -200,6 +200,9 @@ ul { list-style: none; }
   gap: 18px;
   height: 76px;
 }
+
+/* Offset in-page anchor targets (#home, #why, etc.) so the sticky header doesn't cover them on jump. */
+section[id] { scroll-margin-top: 76px; }
 
 .brand {
   display: flex;
@@ -2801,6 +2804,9 @@ input[type=range].f-slider::-webkit-slider-thumb { -webkit-appearance: none; wid
 .auth-step-sub { color: var(--muted); font-size: .92rem; margin-bottom: 26px; }
 .auth-card .field { margin-bottom: 0; }
 .auth-card .req { color: #d9534f; }
+.auth-card--wide { max-width: 640px; }
+.form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
 .field-hint { font-size: .78rem; color: var(--muted); }
 .auth-error { color: #d9534f; font-size: .84rem; font-weight: 600; margin-top: 10px; }
 .auth-terms { font-size: .8rem; color: var(--muted); text-align: center; margin: 18px 0; }
@@ -2820,11 +2826,15 @@ input[type=range].f-slider::-webkit-slider-thumb { -webkit-appearance: none; wid
   .auth-panel { padding: 48px 32px; }
   .auth-highlights-list { grid-template-columns: repeat(4, auto); gap: 28px; }
 }
+@media (max-width: 700px) {
+  .form-grid-3 { grid-template-columns: 1fr 1fr; }
+}
 @media (max-width: 640px) {
   .auth-panel { padding: 40px 24px; }
   .auth-highlights-list { grid-template-columns: 1fr 1fr; }
   .auth-form-col { padding: 40px 20px; }
   .auth-card { padding: 32px 24px; }
+  .form-grid-2, .form-grid-3 { grid-template-columns: 1fr; }
 }
 
 /* CHECKOUT */
