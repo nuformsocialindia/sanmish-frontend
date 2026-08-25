@@ -58,7 +58,6 @@ export default async function CategoryDetailPage({
 
           {/* ---- Main ---- */}
           <div>
-            <h1 style={{ marginBottom: 8 }}>{category.name}</h1>
             {category.description && (
               <p style={{ color: "var(--ink-soft)", maxWidth: 720, marginBottom: 24 }}>{category.description}</p>
             )}
@@ -76,7 +75,6 @@ export default async function CategoryDetailPage({
                       )}
                     </div>
                     <span>{child.name}</span>
-                    <small>{child.productCount} product{child.productCount === 1 ? "" : "s"}</small>
                   </Link>
                 ))}
               </div>

@@ -2652,6 +2652,13 @@ input[type=range].f-slider::-webkit-slider-thumb { -webkit-appearance: none; wid
 .pdp-copylink { display: inline-flex; align-items: center; gap: 5px; font-size: .76rem; color: var(--blue); background: none; border: none; cursor: pointer; white-space: nowrap; padding: 0; }
 .pdp-copylink svg { width: 13px; height: 13px; }
 
+.pdp-share { position: relative; }
+.pdp-share-menu { position: absolute; top: calc(100% + 8px); right: 0; z-index: 20; min-width: 176px; background: #fff; border: 1px solid var(--line); border-radius: var(--radius-sm); box-shadow: var(--shadow-sm); padding: 6px; display: flex; flex-direction: column; gap: 2px; }
+.pdp-share-item { display: flex; align-items: center; gap: 10px; font-size: .84rem; color: var(--ink); background: none; border: none; text-align: left; cursor: pointer; padding: 8px; border-radius: var(--radius-sm); white-space: nowrap; }
+.pdp-share-item:hover { background: var(--gray); }
+.pdp-share-icon { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; color: #fff; flex-shrink: 0; }
+.pdp-share-icon svg { width: 14px; height: 14px; }
+
 .pdp-delivery-row { font-size: .84rem; color: var(--ink-soft); margin-bottom: 10px; }
 .pdp-pincode { display: flex; gap: 8px; margin-bottom: 6px; }
 .pdp-pincode input { flex: 1; min-width: 0; border: 1px solid var(--line); border-radius: 9px; padding: 8px 10px; font-size: .84rem; }

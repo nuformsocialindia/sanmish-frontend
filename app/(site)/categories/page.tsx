@@ -46,10 +46,9 @@ export default async function CategoriesPage() {
                   )}
                 </div>
                 <span>{cat.name}</span>
-                <small>
-                  {cat.productCount} product{cat.productCount === 1 ? "" : "s"}
-                  {cat.children && cat.children.length > 0 ? ` · ${cat.children.length} subcategories` : ""}
-                </small>
+                {cat.children && cat.children.length > 0 && (
+                  <small>{cat.children.length} subcategories</small>
+                )}
               </Link>
             ))}
           </div>

@@ -6,8 +6,9 @@ import { useScrollAnimations } from "@/lib/useScrollAnimations";
 import { useCart } from "@/lib/cart-context";
 import { useWishlist } from "@/lib/wishlist-context";
 import { type ProductDetail } from "@/lib/productLookup";
-import { BULK_TIERS, MIN_ORDER_QTY, mockRating, tierForQty, unitPriceForQty, computeUnitPricing } from "@/lib/pricingTiers";
+import { BULK_TIERS, MIN_ORDER_QTY, tierForQty, unitPriceForQty, computeUnitPricing } from "@/lib/pricingTiers";
 import SimilarProductCard from "@/components/SimilarProductCard";
+import ShareMenu from "@/components/ShareMenu";
 
 const inr = (n: number) => "₹ " + n.toLocaleString("en-IN", { maximumFractionDigits: 2 });
 
@@ -67,7 +68,6 @@ export default function ProductDetailView({
   const [qty, setQty] = useState(minOrderQty);
   const [tab, setTab] = useState<"description" | "specs">("description");
   const [added, setAdded] = useState(false);
-  const [copied, setCopied] = useState(false);
   const [pincode, setPincode] = useState("");
   const [pincodeChecked, setPincodeChecked] = useState<string | null>(null);
   const [activeImage, setActiveImage] = useState(0);
@@ -139,23 +139,12 @@ export default function ProductDetailView({
 
   const total = unitPrice != null ? unitPrice * qty : null;
   const mrpForStrike = isApiPriced ? (discountPct > 0 ? product.mrp : null) : (discountPct > 0 ? basePrice : null);
-  const rating = mockRating(product.slug);
 
   const handleAddToCart = () => {
     if (unitPrice == null) return;
     addItem({ ...product, priceValue: unitPrice, priceLabel: inr(unitPrice) }, qty);
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
-  };
-
-  const handleCopyLink = async () => {
-    try {
-      await navigator.clipboard.writeText(window.location.href);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1800);
-    } catch {
-      // clipboard unavailable — ignore
-    }
   };
 
   // Real per-product specifications from the admin take over the generic
@@ -265,10 +254,6 @@ export default function ProductDetailView({
                   </svg>
                 </span>
                 Sold by <b>{product.seller}</b>
-                <span className="pdp-rating">
-                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 2.9 6.6 7.1.7-5.4 4.7 1.6 7-6.2-3.8L6 21l1.6-7L2.2 9.3l7.1-.7z" /></svg>
-                  {rating}
-                </span>
               </div>
 
               {(basePrice != null || isApiPriced) && (
@@ -340,12 +325,7 @@ export default function ProductDetailView({
                   <small>Shipped by</small>
                   <b>SANMISH Fulfilment</b>
                 </div>
-                <button type="button" className="pdp-copylink" onClick={handleCopyLink}>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-                  </svg>
-                  {copied ? "Copied!" : "Copy link"}
-                </button>
+                <ShareMenu title={product.title} />
               </div>
 
               <div className="pdp-delivery-row">
@@ -378,7 +358,6 @@ export default function ProductDetailView({
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="m5 12 5 5 9-9" /></svg>
                   Trusted
                 </span>
-                <span className="pdp-rating-chip">{rating} ★</span>
               </div>
 
               {!isApiPriced && basePrice != null && (
