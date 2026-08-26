@@ -5,11 +5,30 @@
 // lookup resolves to [] / null rather than throwing, so the storefront's
 // hardcoded content always renders even when the API is unreachable or a
 // given slug/path isn't published.
+// Browser-facing base — goes through the public domain (and Next's /api
+// rewrite to the backend), so it only ever needs to work for the browser.
 const PUBLIC_API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+
+// Server-only base for data fetches made during SSR/server components. A
+// relative or public-domain URL doesn't work from inside the server process
+// itself (a relative URL can't be resolved by Node's fetch at all, and a
+// public-domain URL means the container hairpins out to the internet and
+// back to reach itself, which many container networks block or hang on).
+// Falls back to the browser-facing URL so this still works if unset.
+const SERVER_API_URL = process.env.API_INTERNAL_URL || PUBLIC_API_URL;
+
+// Base URL for JSON data fetches — internal Docker address on the server,
+// public domain in the browser. Never used for asset URLs (see
+// `publicFileUrl` below), since those are handed to the browser either way.
+function apiBase(): string {
+  return typeof window === "undefined" ? SERVER_API_URL : PUBLIC_API_URL;
+}
 
 // Image/logo URLs returned by the API are host-relative paths (e.g.
 // "/public/files/product-images/xxx.png") — prefix with the API origin to
-// get something an <img>/<link> tag can actually load.
+// get something an <img>/<link> tag can actually load. Always uses the
+// browser-facing URL: this string ends up in HTML the browser loads
+// directly, so it must never be the server-only internal address.
 export function publicFileUrl(path: string | null | undefined): string | undefined {
   if (!path) return undefined;
   if (/^https?:\/\//i.test(path)) return path;
@@ -142,7 +161,7 @@ type Paginated<T> = {
 
 async function getJson<T>(path: string): Promise<T | null> {
   try {
-    const res = await fetch(`${PUBLIC_API_URL}${path}`, { cache: "no-store" });
+    const res = await fetch(`${apiBase()}${path}`, { cache: "no-store" });
     if (!res.ok) return null;
     return (await res.json()) as T;
   } catch {
