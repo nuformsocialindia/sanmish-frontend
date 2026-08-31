@@ -105,6 +105,18 @@ export type ApiProductSummary = {
   gstAmount: number | null;
   grandTotal: number | null;
   discountPercent: number | null;
+  gstInvoiceAvailable: boolean;
+  leadTimeText: string | null;
+  freeShippingEligible: boolean;
+  freeShippingNote: string | null;
+  codAvailable: boolean;
+  installationOffered: boolean;
+  amcAvailable: boolean;
+  shippedBy: string | null;
+  returnWindowDays: number | null;
+  grossWeightKg: number | null;
+  dimensionsCm: { l: number; w: number; h: number } | null;
+  warrantyText: string | null;
 };
 
 export type ApiPriceSlab = {
@@ -232,4 +244,21 @@ export async function fetchApiServiceBySlug(slug: string): Promise<ApiService | 
 
 export async function fetchApiPageByPath(path: string): Promise<ApiPage | null> {
   return getJson<ApiPage>(`/public/pages/by-path${qs({ path })}`);
+}
+
+// "Sections" are admin-editable repeatable content lists (team members, stats,
+// FAQ, etc.) that reuse the same CMS Pages backend as fetchApiPageByPath —
+// no dedicated backend model needed. A section lives at a synthetic path
+// (e.g. "/about/team") with its JSON array stored as that page's bodyHtml.
+// Returns null if the section hasn't been created/published yet, or if the
+// stored content isn't valid JSON — callers should fall back to their
+// existing hardcoded default in that case, same as fetchApiPageByPath.
+export async function fetchApiSection<T>(path: string): Promise<T | null> {
+  const page = await fetchApiPageByPath(path);
+  if (!page) return null;
+  try {
+    return JSON.parse(page.bodyHtml) as T;
+  } catch {
+    return null;
+  }
 }

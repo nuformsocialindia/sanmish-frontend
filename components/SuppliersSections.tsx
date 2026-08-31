@@ -1,5 +1,11 @@
 import Link from "next/link";
 import { SUPPLIER_STATS, SUPPLIER_WHY_ITEMS, SUPPLIER_JOIN_STEPS, SUPPLIER_BENEFITS } from "@/lib/data";
+import { iconMarkup } from "@/lib/sectionIcons";
+
+type Stat = { count: number; suffix: string; label: string };
+type WhyItem = { t: string; s: string };
+type JoinStep = { title: string; desc: string; icon: string };
+type Benefit = { icon: string; title: string; desc: string };
 
 export function SuppliersHero() {
   return (
@@ -102,7 +108,7 @@ export function SuppliersHero() {
   );
 }
 
-export function SupplierStatsSection() {
+export function SupplierStatsSection({ stats = SUPPLIER_STATS }: { stats?: Stat[] }) {
   return (
     <section className="section stats" id="stats">
       <div className="blob g" /><div className="blob b" />
@@ -114,7 +120,7 @@ export function SupplierStatsSection() {
           <h2 className="reveal d1">A network built on trust</h2>
         </div>
         <div className="stat-grid">
-          {SUPPLIER_STATS.map((s, i) => (
+          {stats.map((s, i) => (
             <div key={s.label} className={`stat reveal${i > 0 ? ` d${i}` : ""}`}>
               <div className="num" data-count={String(s.count)} data-suffix={s.suffix}>0</div>
               <div className="lbl">{s.label}</div>
@@ -126,7 +132,7 @@ export function SupplierStatsSection() {
   );
 }
 
-export function WhySourceSection() {
+export function WhySourceSection({ items = SUPPLIER_WHY_ITEMS }: { items?: WhyItem[] }) {
   return (
     <section className="section why" id="why-suppliers">
       <div className="wrap why-grid">
@@ -172,7 +178,7 @@ export function WhySourceSection() {
             We check documents, audit quality and let real buyers rate every transaction — so you can source with confidence instead of guesswork.
           </p>
           <div className="why-list">
-            {SUPPLIER_WHY_ITEMS.map((item, i) => (
+            {items.map((item, i) => (
               <div key={item.t} className={`why-item reveal d${(i % 2) + 1}`}>
                 <div className="ck">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
@@ -195,7 +201,7 @@ export function WhySourceSection() {
   );
 }
 
-export function JoinStepsSection() {
+export function JoinStepsSection({ steps = SUPPLIER_JOIN_STEPS }: { steps?: JoinStep[] }) {
   return (
     <section className="section steps" id="join">
       <div className="wrap">
@@ -207,11 +213,11 @@ export function JoinStepsSection() {
         <div className="steps-row">
           <div className="steps-line" />
           <div className="steps-pulse" />
-          {SUPPLIER_JOIN_STEPS.map((step, i) => (
+          {steps.map((step, i) => (
             <div key={step.title} className={`step reveal${i > 0 ? ` d${i}` : ""}`}>
               <div className="step-circle">
-                <span className="step-n">{step.n}</span>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" dangerouslySetInnerHTML={{ __html: step.icon }} />
+                <span className="step-n">{i + 1}</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" dangerouslySetInnerHTML={{ __html: iconMarkup(step.icon) }} />
               </div>
               <h3>{step.title}</h3>
               <p>{step.desc}</p>
@@ -223,7 +229,7 @@ export function JoinStepsSection() {
   );
 }
 
-export function BenefitsSection() {
+export function BenefitsSection({ benefits = SUPPLIER_BENEFITS }: { benefits?: Benefit[] }) {
   return (
     <section className="section" id="benefits">
       <div className="wrap">
@@ -232,10 +238,10 @@ export function BenefitsSection() {
           <h2 className="reveal d1">Benefits for <span className="grad-text">suppliers</span></h2>
         </div>
         <div className="feat-grid">
-          {SUPPLIER_BENEFITS.map((f, i) => (
+          {benefits.map((f, i) => (
             <div key={f.title} className={`feat-card reveal${i > 0 ? ` d${i}` : ""}`}>
               <div className="feat-ic">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" dangerouslySetInnerHTML={{ __html: f.icon }} />
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" dangerouslySetInnerHTML={{ __html: iconMarkup(f.icon) }} />
               </div>
               <h3>{f.title}</h3>
               <p>{f.desc}</p>

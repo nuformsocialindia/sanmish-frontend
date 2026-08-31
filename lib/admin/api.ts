@@ -547,6 +547,18 @@ export function fileUrl(path: string): string {
   return `${ADMIN_API_URL}/admin/files/${path}`;
 }
 
+// Resolves an image field (e.g. a category imageUrl) to a loadable URL.
+// The admin API returns these as a bare storage key with no leading slash
+// (e.g. "category-images/xxx.jpg") — confirmed served at /public/files/{key},
+// the same route the public storefront uses, unlike `fileUrl` below, which
+// is specifically for the auth-gated /admin/files report-download route.
+export function assetUrl(path: string | null | undefined): string | undefined {
+  if (!path) return undefined;
+  if (/^https?:\/\//i.test(path)) return path;
+  const normalized = path.startsWith("/") ? path : `/public/files/${path}`;
+  return `${ADMIN_API_URL}${normalized}`;
+}
+
 // Generated files ({path} responses — invoices, packing slips, PDF/Excel
 // reports) are fetched as a blob and downloaded, per API-CONTRACT.md.
 export async function downloadGenerated(path: string, filename?: string): Promise<void> {

@@ -18,12 +18,18 @@ export function useScrollAnimations() {
         }),
       { threshold: 0.12 }
     );
-    document.querySelectorAll(".reveal").forEach((el) => io.observe(el));
 
-    document.querySelectorAll<HTMLElement>(".reveal").forEach((el) => {
+    // Reveals a single .reveal element: if it's already in the viewport
+    // (the common case for content that just appeared from a filter/tab
+    // click rather than a page load), show it immediately instead of
+    // waiting on the scroll observer or the 2.5s fallback below.
+    const revealIfVisible = (el: Element) => {
       const r = el.getBoundingClientRect();
       if (r.top < window.innerHeight && r.bottom > 0) el.classList.add("in");
-    });
+      else io.observe(el);
+    };
+
+    document.querySelectorAll(".reveal").forEach(revealIfVisible);
 
     const fmt = (n: number): string =>
       n >= 1000
@@ -56,6 +62,25 @@ export function useScrollAnimations() {
 
     document.querySelectorAll("[data-count]").forEach((el) => cio.observe(el));
 
+    // .reveal/[data-count] elements created after this effect ran (filter
+    // results, tab switches, pagination) were never scanned above, so
+    // without this they'd sit at opacity:0 until the fallback timer fires
+    // once at 2.5s post-load — or forever, if that's already elapsed. Watch
+    // the DOM so newly added content reveals itself right away instead of
+    // looking stuck/slow.
+    const mo = new MutationObserver((mutations) => {
+      for (const m of mutations) {
+        m.addedNodes.forEach((node) => {
+          if (!(node instanceof Element)) return;
+          if (node.matches(".reveal")) revealIfVisible(node);
+          node.querySelectorAll?.(".reveal").forEach(revealIfVisible);
+          if (node.matches("[data-count]")) cio.observe(node);
+          node.querySelectorAll?.("[data-count]").forEach((el) => cio.observe(el));
+        });
+      }
+    });
+    mo.observe(document.body, { childList: true, subtree: true });
+
     const fallback = setTimeout(() => {
       document.querySelectorAll<HTMLElement>("[data-count]").forEach((el) => {
         if (el.textContent === "0" || el.textContent === "") {
@@ -72,6 +97,7 @@ export function useScrollAnimations() {
     return () => {
       io.disconnect();
       cio.disconnect();
+      mo.disconnect();
       clearTimeout(fallback);
     };
   }, []);

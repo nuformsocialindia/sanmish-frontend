@@ -1,8 +1,22 @@
 import Link from "next/link";
 import { SERVICES, PROCESS_STEPS, INDUSTRIES, SERVICE_STATS } from "@/lib/data";
 import type { ApiService } from "@/lib/publicApi";
+import { iconMarkup } from "@/lib/sectionIcons";
 
 const DEFAULT_SERVICE_ICON = `<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 15l2 2 4-4"/>`;
+
+type Stat = { count: number; suffix: string; label: string };
+type ProcessStep = { title: string; desc: string; icon: string };
+type WhyItem = { t: string; s: string };
+type Industry = { title: string; desc: string; icon: string };
+type ServiceItem = { t: string; d: string; i: string };
+
+export const DEFAULT_WHY_SERVICES_ITEMS: WhyItem[] = [
+  { t: "Certified engineers", s: "Trained & audited" },
+  { t: "Safety first", s: "Compliant to code" },
+  { t: "Genuine spares", s: "Fast fulfilment" },
+  { t: "Nationwide teams", s: "28+ states" },
+];
 
 function normalizeApiServices(apiServices: ApiService[]) {
   return apiServices.map((s) => ({ t: s.name, d: s.summary, i: DEFAULT_SERVICE_ICON }));
@@ -114,9 +128,9 @@ export function ServicesHero() {
   );
 }
 
-export function ServicesGridSection({ apiServices = [] }: { apiServices?: ApiService[] }) {
+export function ServicesGridSection({ services = SERVICES, apiServices = [] }: { services?: ServiceItem[]; apiServices?: ApiService[] }) {
   const delays = ["", " d1", " d2", " d3"];
-  const services = [...SERVICES, ...normalizeApiServices(apiServices)];
+  const allServices = [...services, ...normalizeApiServices(apiServices)];
   return (
     <section className="section" id="services-list" style={{ paddingTop: 40 }}>
       <div className="wrap">
@@ -126,11 +140,11 @@ export function ServicesGridSection({ apiServices = [] }: { apiServices?: ApiSer
           <p className="reveal d2">A complete engineering stack for alternative fuel infrastructure — pick a single service or a full turnkey scope.</p>
         </div>
         <div className="svc-grid">
-          {services.map((s, i) => (
+          {allServices.map((s, i) => (
             <div key={`${s.t}-${i}`} className={`svc reveal${delays[i % 4]}`}>
               <span className="num">0{i + 1}</span>
               <div className="svc-ic">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" dangerouslySetInnerHTML={{ __html: s.i }} />
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" dangerouslySetInnerHTML={{ __html: iconMarkup(s.i) }} />
               </div>
               <h3>{s.t}</h3>
               <p>{s.d}</p>
@@ -142,7 +156,7 @@ export function ServicesGridSection({ apiServices = [] }: { apiServices?: ApiSer
   );
 }
 
-export function ProcessSection() {
+export function ProcessSection({ steps = PROCESS_STEPS }: { steps?: ProcessStep[] }) {
   return (
     <section className="section steps" id="process">
       <div className="wrap">
@@ -154,11 +168,11 @@ export function ProcessSection() {
         <div className="steps-row">
           <div className="steps-line" />
           <div className="steps-pulse" />
-          {PROCESS_STEPS.map((step, i) => (
+          {steps.map((step, i) => (
             <div key={step.title} className={`step reveal${i > 0 ? ` d${i}` : ""}`}>
               <div className="step-circle">
-                <span className="step-n">{step.n}</span>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" dangerouslySetInnerHTML={{ __html: step.icon }} />
+                <span className="step-n">{i + 1}</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" dangerouslySetInnerHTML={{ __html: iconMarkup(step.icon) }} />
               </div>
               <h3>{step.title}</h3>
               <p>{step.desc}</p>
@@ -170,7 +184,7 @@ export function ProcessSection() {
   );
 }
 
-export function WhyServicesSection() {
+export function WhyServicesSection({ items = DEFAULT_WHY_SERVICES_ITEMS }: { items?: WhyItem[] }) {
   return (
     <section className="section why" id="why-services">
       <div className="wrap why-grid">
@@ -221,12 +235,7 @@ export function WhyServicesSection() {
             Every project is handled by specialists who understand pressure, safety and uptime — not generalists. That&rsquo;s how we keep installations compliant and stations running.
           </p>
           <div className="why-list">
-            {[
-              { t: "Certified engineers", s: "Trained & audited" },
-              { t: "Safety first", s: "Compliant to code" },
-              { t: "Genuine spares", s: "Fast fulfilment" },
-              { t: "Nationwide teams", s: "28+ states" },
-            ].map((item, i) => (
+            {items.map((item, i) => (
               <div key={item.t} className={`why-item reveal d${(i % 2) + 1}`}>
                 <div className="ck">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
@@ -249,7 +258,7 @@ export function WhyServicesSection() {
   );
 }
 
-export function IndustriesSection() {
+export function IndustriesSection({ industries = INDUSTRIES }: { industries?: Industry[] }) {
   const delays = ["", " d1", " d2", " d3", " d4"];
   return (
     <section className="section love" id="industries">
@@ -259,10 +268,10 @@ export function IndustriesSection() {
           <h2 className="reveal d1">Industries we <span className="grad-text">support</span></h2>
         </div>
         <div className="love-grid">
-          {INDUSTRIES.map((item, i) => (
-            <div key={item.title} className={`love-card reveal${delays[i]}`}>
+          {industries.map((item, i) => (
+            <div key={item.title} className={`love-card reveal${delays[i % 5]}`}>
               <div className="love-ic">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" dangerouslySetInnerHTML={{ __html: item.icon }} />
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" dangerouslySetInnerHTML={{ __html: iconMarkup(item.icon) }} />
               </div>
               <h3>{item.title}</h3>
               <p>{item.desc}</p>
@@ -274,7 +283,7 @@ export function IndustriesSection() {
   );
 }
 
-export function ServiceStatsSection() {
+export function ServiceStatsSection({ stats = SERVICE_STATS }: { stats?: Stat[] }) {
   return (
     <section className="section stats" id="stats">
       <div className="blob g" /><div className="blob b" />
@@ -286,7 +295,7 @@ export function ServiceStatsSection() {
           <h2 className="reveal d1">Delivery you can plan around</h2>
         </div>
         <div className="stat-grid">
-          {SERVICE_STATS.map((s, i) => (
+          {stats.map((s, i) => (
             <div key={s.label} className={`stat reveal${i > 0 ? ` d${i}` : ""}`}>
               <div className="num" data-count={String(s.count)} data-suffix={s.suffix}>0</div>
               <div className="lbl">{s.label}</div>

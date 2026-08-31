@@ -1,6 +1,27 @@
+import type { Metadata } from "next";
 import LegalPageLayout from "@/components/LegalPageLayout";
+import CmsPageView from "@/components/CmsPageView";
+import { fetchApiPageByPath } from "@/lib/publicApi";
 
-export default function TermsOfServicePage() {
+const CMS_PATH = "/terms-of-service";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const page = await fetchApiPageByPath(CMS_PATH);
+  if (!page) return { title: "Terms of Service — SANMISH" };
+  return {
+    title: page.metaTitle ?? `${page.title} — SANMISH`,
+    description: page.metaDescription ?? undefined,
+  };
+}
+
+// Prefers an admin-managed page at /terms-of-service (Admin → Pages) once one
+// exists, so legal/marketing can edit and republish this without a code
+// deploy. Falls back to the content below only until that page is created —
+// see the migration note this ships with for the bodyHtml to paste in.
+export default async function TermsOfServicePage() {
+  const page = await fetchApiPageByPath(CMS_PATH);
+  if (page) return <CmsPageView title={page.title} bodyHtml={page.bodyHtml} />;
+
   return (
     <LegalPageLayout
       eyebrow="Please read carefully"

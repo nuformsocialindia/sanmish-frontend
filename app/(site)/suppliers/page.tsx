@@ -1,50 +1,41 @@
-"use client";
-import { useScrollAnimations } from "@/lib/useScrollAnimations";
-import { TopSearchBand } from "@/components/ContactSections";
+import { fetchApiSection } from "@/lib/publicApi";
 import {
-  SuppliersHero,
-  SupplierStatsSection,
-  WhySourceSection,
-  JoinStepsSection,
-  BenefitsSection,
-  SuppliersCTASection,
-} from "@/components/SuppliersSections";
-import SupplierDirectory from "@/components/SupplierDirectory";
-import TestimonialsSection from "@/components/TestimonialsSection";
-import FAQAccordion from "@/components/FAQAccordion";
-import { SUPPLIER_TESTIMONIALS, SUPPLIER_FAQ } from "@/lib/data";
+  SUPPLIER_FILTERS, SUPPLIERS, SUPPLIER_STATS, SUPPLIER_WHY_ITEMS, SUPPLIER_JOIN_STEPS,
+  SUPPLIER_BENEFITS, SUPPLIER_TESTIMONIALS, SUPPLIER_FAQ,
+} from "@/lib/data";
+import SuppliersPageClient from "@/components/SuppliersPageClient";
 
-export default function SuppliersPage() {
-  useScrollAnimations();
+type SupplierFilter = { value: string; label: string };
+type Supplier = { n: string; a: string; t: string; loc: string; r: string; rv: number; p: number; tags: string[]; cats: string[] };
+type Stat = { count: number; suffix: string; label: string };
+type WhyItem = { t: string; s: string };
+type JoinStep = { title: string; desc: string; icon: string };
+type Benefit = { icon: string; title: string; desc: string };
+type Testimonial = { q: string; n: string; r: string; a: string };
+type FaqItem = { q: string; a: string };
+
+export default async function SuppliersPage() {
+  const [filters, suppliers, stats, whyItems, joinSteps, benefits, testimonials, faq] = await Promise.all([
+    fetchApiSection<SupplierFilter[]>("/suppliers/filters"),
+    fetchApiSection<Supplier[]>("/suppliers/directory"),
+    fetchApiSection<Stat[]>("/suppliers/stats"),
+    fetchApiSection<WhyItem[]>("/suppliers/why-items"),
+    fetchApiSection<JoinStep[]>("/suppliers/join-steps"),
+    fetchApiSection<Benefit[]>("/suppliers/benefits"),
+    fetchApiSection<Testimonial[]>("/suppliers/testimonials"),
+    fetchApiSection<FaqItem[]>("/suppliers/faq"),
+  ]);
 
   return (
-    <>
-      <TopSearchBand />
-      <SuppliersHero />
-      <SupplierDirectory />
-      <SupplierStatsSection />
-      <WhySourceSection />
-      <JoinStepsSection />
-      <BenefitsSection />
-      <TestimonialsSection
-        items={SUPPLIER_TESTIMONIALS}
-        eyebrow="Supplier stories"
-        heading={
-          <>
-            Trusted by <span className="grad-text">verified suppliers</span>
-          </>
-        }
-      />
-      <section className="section" id="faq" style={{ paddingTop: 20 }}>
-        <div className="wrap">
-          <div className="section-head">
-            <span className="eyebrow reveal"><span className="dot" />Good to know</span>
-            <h2 className="reveal d1">Supplier <span className="grad-text">FAQs</span></h2>
-          </div>
-          <FAQAccordion items={SUPPLIER_FAQ} />
-        </div>
-      </section>
-      <SuppliersCTASection />
-    </>
+    <SuppliersPageClient
+      filters={filters ?? SUPPLIER_FILTERS}
+      suppliers={suppliers ?? SUPPLIERS}
+      stats={stats ?? SUPPLIER_STATS}
+      whyItems={whyItems ?? SUPPLIER_WHY_ITEMS}
+      joinSteps={joinSteps ?? SUPPLIER_JOIN_STEPS}
+      benefits={benefits ?? SUPPLIER_BENEFITS}
+      testimonials={testimonials ?? SUPPLIER_TESTIMONIALS}
+      faq={faq ?? SUPPLIER_FAQ}
+    />
   );
 }

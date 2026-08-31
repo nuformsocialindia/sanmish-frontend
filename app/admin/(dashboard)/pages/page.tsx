@@ -134,7 +134,7 @@ export default function AdminPagesPage() {
 
       {formOpen && (
         <div className="dialog-backdrop" onClick={() => setFormOpen(false)}>
-          <div className="dialog elev-lg" style={{ maxWidth: 720, maxHeight: "90vh", overflowY: "auto" }} onClick={(e) => e.stopPropagation()}>
+          <div className="dialog elev-lg" style={{ maxWidth: 980, width: "94vw", maxHeight: "90vh", overflowY: "auto" }} onClick={(e) => e.stopPropagation()}>
             <div className="dialog-title">{editing ? "Edit page" : "New page"}</div>
             <form onSubmit={handleSave}>
               <div className="adm-form-grid cols-2">
@@ -152,7 +152,17 @@ export default function AdminPagesPage() {
                     {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
                   </select>
                 </div>
-                <div className="field full"><label>Body HTML *</label><textarea className="input" required rows={8} value={form.bodyHtml} onChange={(e) => setForm({ ...form, bodyHtml: e.target.value })} /></div>
+                <div className="field full">
+                  <label>Body HTML *</label>
+                  <textarea
+                    className="input"
+                    required
+                    rows={24}
+                    value={form.bodyHtml}
+                    onChange={(e) => setForm({ ...form, bodyHtml: e.target.value })}
+                    style={{ fontFamily: "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace", fontSize: 13, lineHeight: 1.6, minHeight: 420, resize: "vertical" }}
+                  />
+                </div>
                 <div className="field"><label>Meta title</label><input className="input" value={form.metaTitle} onChange={(e) => setForm({ ...form, metaTitle: e.target.value })} /></div>
                 <div className="field"><label>Meta description</label><input className="input" value={form.metaDescription} onChange={(e) => setForm({ ...form, metaDescription: e.target.value })} /></div>
               </div>

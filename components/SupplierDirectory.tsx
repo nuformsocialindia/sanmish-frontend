@@ -3,12 +3,21 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { SUPPLIERS, SUPPLIER_FILTERS } from "@/lib/data";
 
-export default function SupplierDirectory() {
+type Supplier = { n: string; a: string; t: string; loc: string; r: string; rv: number; p: number; tags: string[]; cats: string[] };
+type SupplierFilter = { value: string; label: string };
+
+export default function SupplierDirectory({
+  suppliers = SUPPLIERS,
+  filters = SUPPLIER_FILTERS,
+}: {
+  suppliers?: Supplier[];
+  filters?: SupplierFilter[];
+}) {
   const [active, setActive] = useState("all");
 
   const filtered = useMemo(
-    () => (active === "all" ? SUPPLIERS : SUPPLIERS.filter((s) => s.cats.includes(active))),
-    [active]
+    () => (active === "all" ? suppliers : suppliers.filter((s) => s.cats.includes(active))),
+    [active, suppliers]
   );
 
   return (
@@ -20,7 +29,7 @@ export default function SupplierDirectory() {
           <p className="reveal d2">Filter by category to browse manufacturers, OEMs and EPC partners across India.</p>
         </div>
         <div className="sup-filters reveal">
-          {SUPPLIER_FILTERS.map((f) => (
+          {filters.map((f) => (
             <button
               key={f.value}
               className={`filt${active === f.value ? " active" : ""}`}

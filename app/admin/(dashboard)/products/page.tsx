@@ -1,6 +1,6 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
-import { productsApi, categoriesApi, vendorsApi, brandsApi, taxApi, downloadCsv, fileUrl, AdminApiError, type Paginated } from "@/lib/admin/api";
+import { productsApi, categoriesApi, vendorsApi, brandsApi, downloadCsv, fileUrl, AdminApiError, type Paginated } from "@/lib/admin/api";
 import { money, displayStatus } from "@/lib/admin/format";
 import { useQueryState } from "@/lib/admin/useQueryState";
 import { useAdminToast } from "@/components/admin/Toast";
@@ -8,6 +8,8 @@ import { TableSkeleton, EmptyState, ErrorBanner } from "@/components/admin/ListS
 import { ListToolbar, PaginationRow, BulkBar } from "@/components/admin/ListChrome";
 import StatusTag from "@/components/admin/StatusTag";
 import Icon from "@/components/admin/Icon";
+import HsnCodeCombobox from "@/components/admin/HsnCodeCombobox";
+import GalleryCropModal from "@/components/admin/GalleryCropModal";
 
 // v2 Product: title (was name), mrp/sellingPrice (was price), gstApplicable/
 // gstRate/priceIncludesGst (was gstPercent), priceSlabs (via separate PUT
@@ -104,8 +106,8 @@ export default function AdminProductsPage() {
   const [editing, setEditing] = useState<Product | null>(null);
   const [form, setForm] = useState(emptyForm());
   const [saving, setSaving] = useState(false);
-  const [hsnLookupMsg, setHsnLookupMsg] = useState("");
   const [pendingImages, setPendingImages] = useState<File[]>([]);
+  const [galleryCropQueue, setGalleryCropQueue] = useState<File[]>([]);
 
   const [importVendor, setImportVendor] = useState("");
   const [importCategory, setImportCategory] = useState("");
@@ -136,9 +138,16 @@ export default function AdminProductsPage() {
   const toggleSelect = (id: string) => setSelected((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
   const clearSelection = () => setSelected([]);
 
-  const handleUploadImages = (files: FileList | null) => {
-    if (!editing || !files || files.length === 0) return;
-    runOnEditing(() => productsApi.uploadImages(editing.id, Array.from(files)), "Images uploaded.");
+  const handleUploadImages = (files: File[]) => {
+    if (!editing || files.length === 0) return;
+    runOnEditing(() => productsApi.uploadImages(editing.id, files), "Images uploaded.");
+  };
+
+  const handleGalleryCropComplete = (croppedFiles: File[]) => {
+    setGalleryCropQueue([]);
+    if (croppedFiles.length === 0) return;
+    if (editing) handleUploadImages(croppedFiles);
+    else setPendingImages(croppedFiles);
   };
 
   const runAction = async (fn: () => Promise<unknown>, successMsg: string) => {
@@ -169,7 +178,6 @@ export default function AdminProductsPage() {
   const openCreate = () => {
     setEditing(null);
     setForm(emptyForm());
-    setHsnLookupMsg("");
     setPendingImages([]);
     setFormOpen(true);
   };
@@ -197,7 +205,6 @@ export default function AdminProductsPage() {
       metaTitle: String(p.metaTitle ?? ""), metaDescription: String(p.metaDescription ?? ""), metaKeywords: String(p.metaKeywords ?? ""), canonicalUrl: String(p.canonicalUrl ?? ""),
       trustBadges: Array.isArray(p.trustBadges) ? (p.trustBadges as { label: string; icon: string }[]) : null,
     });
-    setHsnLookupMsg("");
     setPendingImages([]);
     setFormOpen(true);
   };
@@ -205,17 +212,6 @@ export default function AdminProductsPage() {
   const openProduct = (p: Product) => {
     openEdit(p);
     productsApi.get(p.id).then((d) => openEdit(d as Product)).catch(() => {});
-  };
-
-  const handleHsnLookup = async () => {
-    if (!form.hsnCode) return;
-    try {
-      const hsn = await taxApi.hsnLookup(form.hsnCode);
-      setForm((f) => ({ ...f, gstRate: String(hsn.gstRate ?? f.gstRate) }));
-      setHsnLookupMsg(`Found: ${String(hsn.description ?? "")} — GST ${hsn.gstRate}%`);
-    } catch {
-      setHsnLookupMsg("HSN code not found in the tax master.");
-    }
   };
 
   const addSpec = () => setForm((f) => ({ ...f, specifications: [...f.specifications, { key: "", value: "" }] }));
@@ -384,11 +380,11 @@ export default function AdminProductsPage() {
                 <div className="field"><label>SKU *</label><input className="input" required value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} /></div>
                 <div className="field">
                   <label>HSN / SAC code *</label>
-                  <div style={{ display: "flex", gap: 8 }}>
-                    <input className="input" required value={form.hsnCode} onChange={(e) => setForm({ ...form, hsnCode: e.target.value })} />
-                    <button type="button" className="btn btn-secondary btn-sm" onClick={handleHsnLookup}>Lookup</button>
-                  </div>
-                  {hsnLookupMsg && <span style={{ fontSize: 12, color: "var(--color-neutral-600)" }}>{hsnLookupMsg}</span>}
+                  <HsnCodeCombobox
+                    value={form.hsnCode}
+                    onChange={(code) => setForm((f) => ({ ...f, hsnCode: code }))}
+                    onResolved={(hsn) => setForm((f) => ({ ...f, gstRate: String(hsn.gstRate ?? f.gstRate) }))}
+                  />
                 </div>
                 <div className="field"><label>Unit of sale *</label><input className="input" required value={form.unit} onChange={(e) => setForm({ ...form, unit: e.target.value })} /></div>
               </div>
@@ -677,7 +673,7 @@ export default function AdminProductsPage() {
                   </div>
                   <label className="btn btn-secondary btn-sm" style={{ cursor: "pointer", alignSelf: "flex-start" }}>
                     Upload images
-                    <input type="file" accept="image/*" multiple style={{ display: "none" }} onChange={(e) => handleUploadImages(e.target.files)} />
+                    <input type="file" accept="image/*" multiple style={{ display: "none" }} onChange={(e) => { setGalleryCropQueue(Array.from(e.target.files ?? [])); e.target.value = ""; }} />
                   </label>
                   <p style={{ fontSize: 12.5, color: "var(--color-neutral-600)" }}>Datasheet, certificate, test report uploads are managed once the product's own tools support them.</p>
                 </>
@@ -687,7 +683,7 @@ export default function AdminProductsPage() {
                     <Icon name="upload" size={22} />
                     <span className="adm-dropzone-title">{pendingImages.length ? `${pendingImages.length} image(s) queued` : "Drop product images here — field images"}</span>
                   </label>
-                  <input id="prod-images" type="file" accept="image/*" multiple style={{ display: "none" }} onChange={(e) => setPendingImages(Array.from(e.target.files ?? []))} />
+                  <input id="prod-images" type="file" accept="image/*" multiple style={{ display: "none" }} onChange={(e) => { setGalleryCropQueue(Array.from(e.target.files ?? [])); e.target.value = ""; }} />
                   <p style={{ fontSize: 12.5, color: "var(--color-neutral-600)" }}>Images upload once the listing is saved. Documents can be added after creation.</p>
                 </>
               )}
@@ -855,6 +851,7 @@ export default function AdminProductsPage() {
         </div>
       )}
 
+      <GalleryCropModal files={galleryCropQueue} onComplete={handleGalleryCropComplete} />
     </div>
   );
 }

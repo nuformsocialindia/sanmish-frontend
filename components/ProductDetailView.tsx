@@ -9,6 +9,8 @@ import { type ProductDetail } from "@/lib/productLookup";
 import { BULK_TIERS, MIN_ORDER_QTY, tierForQty, unitPriceForQty, computeUnitPricing } from "@/lib/pricingTiers";
 import SimilarProductCard from "@/components/SimilarProductCard";
 import ShareMenu from "@/components/ShareMenu";
+import ProductImageZoom from "@/components/ProductImageZoom";
+import ProductGalleryLightbox from "@/components/ProductGalleryLightbox";
 
 const inr = (n: number) => "₹ " + n.toLocaleString("en-IN", { maximumFractionDigits: 2 });
 
@@ -36,17 +38,6 @@ const DEFAULT_TRUST_BADGES = [
   { label: "Top Brands", icon: "BRAND" },
 ];
 
-const SPECS = [
-  { k: "Category", v: "" },
-  { k: "Brand", v: "" },
-  { k: "Supplier Type", v: "" },
-  { k: "Warranty", v: "1 Year Manufacturer Warranty" },
-  { k: "Delivery", v: "7–14 business days, PAN India" },
-  { k: "Certification", v: "ISO 9001, PESO Compliant" },
-  { k: "Key Features", v: "Weatherproof housing, plug-and-play installation" },
-  { k: "Country of Origin", v: "India" },
-];
-
 export default function ProductDetailView({
   product,
   similarProducts,
@@ -71,6 +62,7 @@ export default function ProductDetailView({
   const [pincode, setPincode] = useState("");
   const [pincodeChecked, setPincodeChecked] = useState<string | null>(null);
   const [activeImage, setActiveImage] = useState(0);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
   const gallery = product.images && product.images.length > 0 ? product.images : null;
 
   const round2 = (n: number) => Math.round(n * 100) / 100;
@@ -147,21 +139,22 @@ export default function ProductDetailView({
     setTimeout(() => setAdded(false), 2000);
   };
 
-  // Real per-product specifications from the admin take over the generic
-  // demo rows (Warranty/Delivery/Certification/…) once they're configured.
-  const specs = product.specifications && product.specifications.length > 0
-    ? [
-        { k: "Category", v: product.category },
-        { k: "Brand", v: product.brand || "—" },
-        { k: "Supplier Type", v: product.type || "Verified Manufacturer" },
-        ...product.specifications.map((s) => ({ k: s.key.trim(), v: s.value })),
-      ]
-    : SPECS.map((row) => {
-        if (row.k === "Category") return { ...row, v: product.category };
-        if (row.k === "Brand") return { ...row, v: product.brand || "—" };
-        if (row.k === "Supplier Type") return { ...row, v: product.type || "Verified Manufacturer" };
-        return row;
-      });
+  // Only real, admin-entered data — no generic filler rows. Structured
+  // fields (warranty/returns/weight/dimensions) show first when set, then
+  // any freeform key/value specs the admin added.
+  const specs: { k: string; v: string }[] = [
+    { k: "Category", v: product.category },
+    { k: "Brand", v: product.brand || "—" },
+    { k: "Supplier Type", v: product.type || "Verified Manufacturer" },
+  ];
+  if (product.warrantyText) specs.push({ k: "Warranty", v: product.warrantyText });
+  if (product.returnWindowDays) specs.push({ k: "Return Policy", v: `${product.returnWindowDays}-day returns` });
+  if (product.grossWeightKg) specs.push({ k: "Weight", v: `${product.grossWeightKg} kg` });
+  if (product.dimensionsCm && (product.dimensionsCm.l || product.dimensionsCm.w || product.dimensionsCm.h)) {
+    const { l, w, h } = product.dimensionsCm;
+    specs.push({ k: "Dimensions", v: `${l} × ${w} × ${h} cm` });
+  }
+  if (product.specifications) specs.push(...product.specifications.map((s) => ({ k: s.key.trim(), v: s.value })));
 
   // product.trustBadges is null for hardcoded/unconfigured products (show
   // the default strip); a fully custom, admin-authored list (any label,
@@ -205,7 +198,11 @@ export default function ProductDetailView({
             <div className="pdp-gallery reveal">
               <div className="pdp-gallery-main">
                 {gallery ? (
-                  <img src={gallery[activeImage] ?? gallery[0]} alt={product.title} style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "inherit" }} />
+                  <ProductImageZoom
+                    src={gallery[activeImage] ?? gallery[0]}
+                    alt={product.title}
+                    onOpen={() => setLightboxOpen(true)}
+                  />
                 ) : (
                   <span dangerouslySetInnerHTML={{ __html: product.icon }} />
                 )}
@@ -269,10 +266,25 @@ export default function ProductDetailView({
                 </div>
               )}
 
-              <div className="pdp-offers">
-                <div><span className="tick">✓</span>Eligible for <b>FREE SHIPPING</b>. *T&amp;C Apply</div>
-                <div><span className="tick">✓</span>Get GST invoice and <b>save up to 18%</b> on business purchases.</div>
-              </div>
+              {(product.freeShippingEligible || product.gstInvoiceAvailable || product.codAvailable || product.installationOffered || product.amcAvailable) && (
+                <div className="pdp-offers">
+                  {product.freeShippingEligible && (
+                    <div><span className="tick">✓</span>{product.freeShippingNote || <>Eligible for <b>FREE SHIPPING</b></>}</div>
+                  )}
+                  {product.gstInvoiceAvailable && (
+                    <div><span className="tick">✓</span>Get GST invoice and <b>save up to {product.gstRate}%</b> on business purchases.</div>
+                  )}
+                  {product.codAvailable && (
+                    <div><span className="tick">✓</span>Cash on delivery available</div>
+                  )}
+                  {product.installationOffered && (
+                    <div><span className="tick">✓</span>Installation and commissioning offered</div>
+                  )}
+                  {product.amcAvailable && (
+                    <div><span className="tick">✓</span>AMC available after warranty</div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
@@ -323,13 +335,13 @@ export default function ProductDetailView({
               <div className="pdp-buybox-head">
                 <div>
                   <small>Shipped by</small>
-                  <b>SANMISH Fulfilment</b>
+                  <b>{product.shippedBy || "Seller"}</b>
                 </div>
                 <ShareMenu title={product.title} />
               </div>
 
               <div className="pdp-delivery-row">
-                Estimated delivery in <b>7–14 business days</b>
+                Estimated delivery in <b>{product.leadTimeText || "7–14 business days"}</b>
               </div>
               <div className="pdp-pincode">
                 <input
@@ -522,6 +534,10 @@ export default function ProductDetailView({
           </div>
         </div>
       </section>
+
+      {lightboxOpen && gallery && (
+        <ProductGalleryLightbox images={gallery} initialIndex={activeImage} onClose={() => setLightboxOpen(false)} />
+      )}
     </>
   );
 }

@@ -33,6 +33,18 @@ export type ProductDetail = {
   grandTotal?: number | null;
   discountPercent?: number | null;
   priceSlabs?: ApiPriceSlab[];
+  gstInvoiceAvailable?: boolean;
+  leadTimeText?: string | null;
+  freeShippingEligible?: boolean;
+  freeShippingNote?: string | null;
+  codAvailable?: boolean;
+  installationOffered?: boolean;
+  amcAvailable?: boolean;
+  shippedBy?: string | null;
+  returnWindowDays?: number | null;
+  grossWeightKg?: number | null;
+  dimensionsCm?: { l: number; w: number; h: number } | null;
+  warrantyText?: string | null;
 };
 
 const inr = (n: number) => "₹ " + n.toLocaleString("en-IN");
@@ -71,6 +83,18 @@ function fromApi(apiProducts: ApiProductSummary[]): ProductDetail[] {
     gstAmount: p.gstAmount,
     grandTotal: p.grandTotal,
     discountPercent: p.discountPercent,
+    gstInvoiceAvailable: p.gstInvoiceAvailable,
+    leadTimeText: p.leadTimeText,
+    freeShippingEligible: p.freeShippingEligible,
+    freeShippingNote: p.freeShippingNote,
+    codAvailable: p.codAvailable,
+    installationOffered: p.installationOffered,
+    amcAvailable: p.amcAvailable,
+    shippedBy: p.shippedBy,
+    returnWindowDays: p.returnWindowDays,
+    grossWeightKg: p.grossWeightKg,
+    dimensionsCm: p.dimensionsCm,
+    warrantyText: p.warrantyText,
   }));
 }
 

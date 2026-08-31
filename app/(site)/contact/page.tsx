@@ -1,41 +1,25 @@
-"use client";
-import { useScrollAnimations } from "@/lib/useScrollAnimations";
-import {
-  TopSearchBand,
-  ContactHero,
-  ContactMethodsSection,
-  ContactInfoPanel,
-  OfficesSection,
-  ContactCTASection,
-} from "@/components/ContactSections";
-import ContactForm from "@/components/ContactForm";
-import FAQAccordion from "@/components/FAQAccordion";
+import { fetchApiSection } from "@/lib/publicApi";
+import { OFFICES, CONTACT_FAQ } from "@/lib/data";
+import { DEFAULT_CONTACT_METHODS, DEFAULT_CONTACT_DETAILS, type ContactMethod, type ContactDetails } from "@/components/ContactSections";
+import ContactPageClient from "@/components/ContactPageClient";
 
-export default function ContactPage() {
-  useScrollAnimations();
+type Office = { city: string; addr: string; phone: string };
+type FaqItem = { q: string; a: string };
+
+export default async function ContactPage() {
+  const [methods, detailsRecord, offices, faq] = await Promise.all([
+    fetchApiSection<ContactMethod[]>("/contact/methods"),
+    fetchApiSection<ContactDetails[]>("/contact/details"),
+    fetchApiSection<Office[]>("/contact/offices"),
+    fetchApiSection<FaqItem[]>("/contact/faq"),
+  ]);
 
   return (
-    <>
-      <TopSearchBand />
-      <ContactHero />
-      <ContactMethodsSection />
-      <section className="section" id="contact-form" style={{ paddingTop: 20 }}>
-        <div className="wrap contact-grid">
-          <ContactForm />
-          <ContactInfoPanel />
-        </div>
-      </section>
-      <OfficesSection />
-      <section className="section" id="faq" style={{ paddingTop: 20 }}>
-        <div className="wrap">
-          <div className="section-head">
-            <span className="eyebrow reveal"><span className="dot" />Before you write</span>
-            <h2 className="reveal d1">Common <span className="grad-text">questions</span></h2>
-          </div>
-          <FAQAccordion />
-        </div>
-      </section>
-      <ContactCTASection />
-    </>
+    <ContactPageClient
+      methods={methods ?? DEFAULT_CONTACT_METHODS}
+      details={detailsRecord?.[0] ?? DEFAULT_CONTACT_DETAILS}
+      offices={offices ?? OFFICES}
+      faq={faq ?? CONTACT_FAQ}
+    />
   );
 }

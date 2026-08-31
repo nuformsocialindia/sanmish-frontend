@@ -1,5 +1,13 @@
 import Link from "next/link";
 import { ABOUT_STATS, STORY_POINTS, CORE_VALUES, JOURNEY, TEAM, CERTIFICATIONS } from "@/lib/data";
+import { iconMarkup } from "@/lib/sectionIcons";
+
+type Stat = { count: number; suffix: string; label: string };
+type StoryPoint = { t: string; s: string };
+type CoreValue = { icon: string; title: string; desc: string };
+type JourneyStep = { year: string; title: string; desc: string; icon: string };
+type TeamMember = { a: string; n: string; r: string; b: string };
+type Certification = { icon: string; title: string; desc: string };
 
 export function AboutHero() {
   return (
@@ -110,7 +118,7 @@ export function AboutHero() {
   );
 }
 
-export function AboutStatsSection() {
+export function AboutStatsSection({ stats = ABOUT_STATS }: { stats?: Stat[] }) {
   return (
     <section className="section stats" id="stats">
       <div className="blob g" /><div className="blob b" />
@@ -122,7 +130,7 @@ export function AboutStatsSection() {
           <h2 className="reveal d1">Trusted at scale across India&rsquo;s energy industry</h2>
         </div>
         <div className="stat-grid">
-          {ABOUT_STATS.map((s, i) => (
+          {stats.map((s, i) => (
             <div key={s.label} className={`stat reveal${i > 0 ? ` d${i}` : ""}`}>
               <div className="num" data-count={String(s.count)} data-suffix={s.suffix}>0</div>
               <div className="lbl">{s.label}</div>
@@ -134,7 +142,7 @@ export function AboutStatsSection() {
   );
 }
 
-export function StorySection() {
+export function StorySection({ points = STORY_POINTS }: { points?: StoryPoint[] }) {
   return (
     <section className="section why" id="story">
       <div className="wrap why-grid">
@@ -193,7 +201,7 @@ export function StorySection() {
             We began with CNG equipment and a simple promise: every supplier verified, every listing accountable. As demand grew, so did we — expanding into CBG, Bio Gas and Hydrogen, and adding installation, commissioning and lifecycle engineering services. Today SANMISH is where serious clean-energy procurement happens.
           </p>
           <div className="why-list">
-            {STORY_POINTS.map((item, i) => (
+            {points.map((item, i) => (
               <div key={item.t} className={`why-item reveal d${(i % 2) + 1}`}>
                 <div className="ck">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
@@ -216,7 +224,21 @@ export function StorySection() {
   );
 }
 
-export function MissionVisionSection() {
+export const DEFAULT_MISSION_VISION: CoreValue[] = [
+  {
+    icon: "target",
+    title: "Our Mission",
+    desc: "To make clean energy infrastructure easy to source and trust — giving every buyer access to verified suppliers, fair pricing and engineering support, and giving manufacturers a direct line to serious industrial demand across India.",
+  },
+  {
+    icon: "eye",
+    title: "Our Vision",
+    desc: "To be the backbone of India’s alternative fuel economy — the platform where the country’s CNG, CBG, Bio Gas and Hydrogen projects get built, so cleaner energy reaches more places, faster.",
+  },
+];
+
+export function MissionVisionSection({ items = DEFAULT_MISSION_VISION }: { items?: CoreValue[] }) {
+  const delays = ["", " d1", " d2"];
   return (
     <section className="section" style={{ paddingTop: 20 }}>
       <div className="wrap">
@@ -226,31 +248,22 @@ export function MissionVisionSection() {
           <p className="reveal d2">The principles that shape every listing, quotation and project on SANMISH.</p>
         </div>
         <div className="mv-grid">
-          <div className="mv-card reveal">
-            <div className="mv-ic">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="6" /><circle cx="12" cy="12" r="2" />
-              </svg>
+          {items.map((item, i) => (
+            <div key={item.title} className={`mv-card reveal${delays[i % 3]}`}>
+              <div className="mv-ic">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" dangerouslySetInnerHTML={{ __html: iconMarkup(item.icon) }} />
+              </div>
+              <h3>{item.title}</h3>
+              <p>{item.desc}</p>
             </div>
-            <h3>Our Mission</h3>
-            <p>To make clean energy infrastructure easy to source and trust — giving every buyer access to verified suppliers, fair pricing and engineering support, and giving manufacturers a direct line to serious industrial demand across India.</p>
-          </div>
-          <div className="mv-card reveal d1">
-            <div className="mv-ic">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" /><circle cx="12" cy="12" r="3" />
-              </svg>
-            </div>
-            <h3>Our Vision</h3>
-            <p>To be the backbone of India&rsquo;s alternative fuel economy — the platform where the country&rsquo;s CNG, CBG, Bio Gas and Hydrogen projects get built, so cleaner energy reaches more places, faster.</p>
-          </div>
+          ))}
         </div>
       </div>
     </section>
   );
 }
 
-export function CoreValuesSection() {
+export function CoreValuesSection({ values = CORE_VALUES }: { values?: CoreValue[] }) {
   const delays = ["", " d1", " d2", " d3"];
   return (
     <section className="section" id="values" style={{ paddingTop: 20 }}>
@@ -261,10 +274,10 @@ export function CoreValuesSection() {
           <p className="reveal d2">Four commitments we hold ourselves to on every transaction.</p>
         </div>
         <div className="feat-grid">
-          {CORE_VALUES.map((v, i) => (
+          {values.map((v, i) => (
             <div key={v.title} className={`feat-card reveal${delays[i % 4]}`}>
               <div className="feat-ic">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" dangerouslySetInnerHTML={{ __html: v.icon }} />
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" dangerouslySetInnerHTML={{ __html: iconMarkup(v.icon) }} />
               </div>
               <h3>{v.title}</h3>
               <p>{v.desc}</p>
@@ -276,7 +289,7 @@ export function CoreValuesSection() {
   );
 }
 
-export function JourneySection() {
+export function JourneySection({ journey = JOURNEY }: { journey?: JourneyStep[] }) {
   return (
     <section className="section steps" id="journey">
       <div className="wrap">
@@ -288,11 +301,11 @@ export function JourneySection() {
         <div className="steps-row">
           <div className="steps-line" />
           <div className="steps-pulse" />
-          {JOURNEY.map((step, i) => (
+          {journey.map((step, i) => (
             <div key={step.title} className={`step reveal${i > 0 ? ` d${i}` : ""}`}>
               <div className="step-circle">
-                <span className="step-n">{step.n}</span>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" dangerouslySetInnerHTML={{ __html: step.icon }} />
+                <span className="step-n">{i + 1}</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" dangerouslySetInnerHTML={{ __html: iconMarkup(step.icon) }} />
               </div>
               <span className="yr">{step.year}</span>
               <h3>{step.title}</h3>
@@ -305,7 +318,7 @@ export function JourneySection() {
   );
 }
 
-export function TeamSection() {
+export function TeamSection({ team = TEAM }: { team?: TeamMember[] }) {
   const delays = ["", " d1", " d2", " d3"];
   return (
     <section className="section love" id="team">
@@ -316,7 +329,7 @@ export function TeamSection() {
           <p className="reveal d2">Engineers and operators who&rsquo;ve spent their careers in India&rsquo;s gas and energy sector.</p>
         </div>
         <div className="team-grid">
-          {TEAM.map((m, i) => (
+          {team.map((m, i) => (
             <div key={m.n} className={`team-card reveal${delays[i % 4]}`}>
               <div className="team-av">{m.a}</div>
               <h3>{m.n}</h3>
@@ -347,7 +360,7 @@ export function TeamSection() {
   );
 }
 
-export function CertificationsSection() {
+export function CertificationsSection({ certifications = CERTIFICATIONS }: { certifications?: Certification[] }) {
   return (
     <section className="section" id="certifications" style={{ paddingTop: 20 }}>
       <div className="wrap">
@@ -357,10 +370,10 @@ export function CertificationsSection() {
           <p className="reveal d2">We hold ourselves — and our supplier network — to recognised industrial benchmarks.</p>
         </div>
         <div className="love-grid">
-          {CERTIFICATIONS.map((c, i) => (
+          {certifications.map((c, i) => (
             <div key={c.title} className={`love-card reveal${i > 0 ? ` d${i}` : ""}`}>
               <div className="love-ic">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" dangerouslySetInnerHTML={{ __html: c.icon }} />
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" dangerouslySetInnerHTML={{ __html: iconMarkup(c.icon) }} />
               </div>
               <h3>{c.title}</h3>
               <p>{c.desc}</p>

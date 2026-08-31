@@ -3,7 +3,7 @@ import type { AdminRole } from "@/lib/admin/api";
 export type AdminModule =
   | "dashboard" | "users" | "vendors" | "categories" | "products" | "orders"
   | "payments" | "logistics" | "rfq" | "reports" | "notifications" | "admins" | "settings"
-  | "brands" | "merchandising" | "coupons" | "reviews" | "services" | "pages"
+  | "brands" | "merchandising" | "coupons" | "reviews" | "services" | "pages" | "site-content"
   | "enquiries" | "tax" | "shipping";
 
 // Mirrors ROUTES.md's lib/auth/roleModules.ts — nav visibility only, not
@@ -12,7 +12,7 @@ export type AdminModule =
 // backend endpoints yet) — see AGENTS.md note in each page file.
 export const ROLE_MODULES: Record<AdminRole, AdminModule[] | null> = {
   SUPER_ADMIN: null, // null = everything
-  OPERATIONS_ADMIN: ["dashboard", "users", "orders", "rfq", "enquiries", "services", "pages", "reports", "notifications"],
+  OPERATIONS_ADMIN: ["dashboard", "users", "orders", "rfq", "enquiries", "services", "pages", "site-content", "reports", "notifications"],
   FINANCE_ADMIN: ["dashboard", "payments", "tax", "reports"],
   PRODUCT_ADMIN: ["dashboard", "categories", "products", "brands", "merchandising", "coupons", "reviews", "tax", "reports"],
   LOGISTICS_ADMIN: ["dashboard", "logistics", "shipping", "orders", "reports"],
@@ -50,6 +50,7 @@ const ICONS: Record<AdminModule, string> = {
   reviews: `<path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.77 5.82 21 7 14.14l-5-4.87 6.91-1.01L12 2z"/>`,
   services: `<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94z"/>`,
   pages: `<path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5z"/><path d="M14 2v6h6M9 13h6M9 17h6"/>`,
+  "site-content": `<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/>`,
   enquiries: `<rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/>`,
   tax: `<path d="M14 2H6a2 2 0 0 0-2 2v16l3-2 3 2 3-2 3 2V4a2 2 0 0 0-2-2z"/><path d="M9 8h6M9 12h4"/>`,
   shipping: `<path d="M5 18H3V6a1 1 0 0 1 1-1h9v13"/><path d="M14 9h4l3 3v6h-3"/><circle cx="7.5" cy="18.5" r="1.5"/><circle cx="17.5" cy="18.5" r="1.5"/>`,
@@ -62,7 +63,7 @@ const LABELS: Record<AdminModule, string> = {
   logistics: "Logistics", settings: "Settings",
   brands: "Brands & OEMs", merchandising: "Merchandising", coupons: "Deals & coupons",
   reviews: "Ratings & reviews", services: "Services", pages: "Pages & policies",
-  enquiries: "Contact enquiries", tax: "Tax & GST", shipping: "Shipping & delivery",
+  "site-content": "Site content", enquiries: "Contact enquiries", tax: "Tax & GST", shipping: "Shipping & delivery",
 };
 
 const HREFS: Record<AdminModule, string> = {
@@ -72,13 +73,13 @@ const HREFS: Record<AdminModule, string> = {
   payments: "/admin/payments", logistics: "/admin/logistics", settings: "/admin/settings",
   brands: "/admin/brands", merchandising: "/admin/merchandising", coupons: "/admin/coupons",
   reviews: "/admin/reviews", services: "/admin/services", pages: "/admin/pages",
-  enquiries: "/admin/enquiries", tax: "/admin/tax", shipping: "/admin/shipping",
+  "site-content": "/admin/site-content", enquiries: "/admin/enquiries", tax: "/admin/tax", shipping: "/admin/shipping",
 };
 
 const SECTIONS: { label: string; modules: AdminModule[] }[] = [
   { label: "Overview", modules: ["dashboard", "reports", "notifications"] },
   { label: "Catalogue", modules: ["categories", "products", "brands"] },
-  { label: "Storefront", modules: ["merchandising", "coupons", "reviews", "services", "pages"] },
+  { label: "Storefront", modules: ["merchandising", "coupons", "reviews", "services", "pages", "site-content"] },
   { label: "Demand", modules: ["orders", "rfq", "enquiries"] },
   { label: "People", modules: ["users", "vendors", "admins"] },
   { label: "Money & ops", modules: ["payments", "tax", "logistics", "shipping"] },
@@ -114,6 +115,7 @@ export const PAGE_TITLES: Record<AdminModule, { title: string; subtitle: string 
   reviews: { title: "Ratings & reviews", subtitle: "Moderate buyer reviews and supplier ratings" },
   services: { title: "Services", subtitle: "Installation, commissioning, AMC, spares, turnkey" },
   pages: { title: "Pages & policies", subtitle: "Help centre, shipping, returns and legal copy" },
+  "site-content": { title: "Site content", subtitle: "About page and Suppliers page sections — team, stats, testimonials and more" },
   enquiries: { title: "Contact enquiries", subtitle: "Quote requests and contact-form submissions" },
   tax: { title: "Tax & GST", subtitle: "HSN codes, GST rates and invoicing rules" },
   shipping: { title: "Shipping & delivery", subtitle: "Free-shipping rules, serviceable cities, lead times" },

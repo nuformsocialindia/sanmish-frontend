@@ -1,16 +1,15 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { categoriesApi, downloadCsv, AdminApiError } from "@/lib/admin/api";
+import CategoryForm from "@/components/admin/CategoryForm";
 import { useAdminToast } from "@/components/admin/Toast";
-import { useAdminAuth } from "@/lib/admin/auth-context";
 import { ErrorBanner } from "@/components/admin/ListStates";
 import Drawer, { FieldGrid, Field, NotesThread } from "@/components/admin/Drawer";
 import Icon from "@/components/admin/Icon";
 
-const FUEL_TYPES = ["CNG", "CBG", "BIO_GAS", "HYDROGEN", "MULTI_FUEL"] as const;
-
 type Category = Record<string, unknown> & {
   id: string; name?: string; isActive?: boolean; priority?: number; fuelType?: string | null; children?: Category[];
+  imageUrl?: string | null;
   _count?: { products?: number };
   notes?: Record<string, unknown>[];
 };
@@ -37,29 +36,17 @@ function flattenForOptions(nodes: Category[], depth = 0): { id: string; label: s
 
 export default function AdminCategoriesPage() {
   const toast = useAdminToast();
-  const { admin } = useAdminAuth();
   const [tree, setTree] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showDeleted, setShowDeleted] = useState(false);
 
-  const [editing, setEditing] = useState<Category | null>(null);
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [metaTitle, setMetaTitle] = useState("");
-  const [metaDescription, setMetaDescription] = useState("");
-  const [fuelType, setFuelType] = useState("");
-  const [parentId, setParentId] = useState("");
-  const [priority, setPriority] = useState("");
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [saving, setSaving] = useState(false);
-
   const [detail, setDetail] = useState<{ category: Category; depth: number } | null>(null);
   const [drawerTab, setDrawerTab] = useState("overview");
   const [note, setNote] = useState("");
+  const [createFormKey, setCreateFormKey] = useState(0);
 
   const dragId = useRef<string | null>(null);
-  const formRef = useRef<HTMLDivElement>(null);
 
   const load = useCallback(() => {
     setLoading(true);
@@ -72,21 +59,6 @@ export default function AdminCategoriesPage() {
   }, [showDeleted]);
 
   useEffect(() => { load(); }, [load]);
-
-  const openCreate = () => {
-    setEditing(null);
-    setName(""); setDescription(""); setMetaTitle(""); setMetaDescription(""); setFuelType(""); setParentId(""); setPriority(""); setImageFile(null);
-  };
-
-  const openEdit = (c: Category) => {
-    setDetail(null);
-    setEditing(c);
-    setName(String(c.name ?? "")); setDescription(String(c.description ?? ""));
-    setMetaTitle(String(c.metaTitle ?? "")); setMetaDescription(String(c.metaDescription ?? ""));
-    setFuelType(String(c.fuelType ?? ""));
-    setParentId(String(c.parentId ?? "")); setPriority(String(c.priority ?? "")); setImageFile(null);
-    formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
 
   const openDrawer = (c: Category, depth: number) => {
     setDetail({ category: c, depth });
@@ -106,28 +78,27 @@ export default function AdminCategoriesPage() {
     }
   };
 
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSaving(true);
-    const fd = new FormData();
-    fd.append("name", name);
-    if (description) fd.append("description", description);
-    if (metaTitle) fd.append("metaTitle", metaTitle);
-    if (metaDescription) fd.append("metaDescription", metaDescription);
-    if (fuelType) fd.append("fuelType", fuelType);
-    if (parentId) fd.append("parentId", parentId);
-    if (priority) fd.append("priority", priority);
-    if (imageFile) fd.append("image", imageFile);
+  const handleCreate = async (fd: FormData) => {
     try {
-      if (editing) { await categoriesApi.update(editing.id, fd); toast.success("Category updated."); }
-      else { await categoriesApi.create(fd); toast.success("Category created."); }
-      setEditing(null);
-      setName(""); setDescription(""); setMetaTitle(""); setMetaDescription(""); setFuelType(""); setParentId(""); setPriority(""); setImageFile(null);
+      await categoriesApi.create(fd);
+      toast.success("Category created.");
       load();
+      setCreateFormKey((k) => k + 1);
     } catch (err) {
       toast.error(err instanceof AdminApiError ? err.message : "Could not save category.");
-    } finally {
-      setSaving(false);
+    }
+  };
+
+  const handleUpdate = async (fd: FormData) => {
+    if (!detail) return;
+    try {
+      await categoriesApi.update(detail.category.id, fd);
+      toast.success("Category updated.");
+      load();
+      setDrawerTab("overview");
+      openDrawer(detail.category, detail.depth);
+    } catch (err) {
+      toast.error(err instanceof AdminApiError ? err.message : "Could not save category.");
     }
   };
 
@@ -165,37 +136,10 @@ export default function AdminCategoriesPage() {
         <button type="button" className="btn btn-secondary" onClick={() => downloadCsv("/admin/categories/export")}>Export CSV</button>
       </div>
 
-      <div className="card elev-sm adm-form-card" ref={formRef}>
+      <div className="card elev-sm adm-form-card">
         <div className="card-kicker">Catalogue</div>
-        <h3 className="card-title" style={{ fontSize: 21 }}>Create or edit a category</h3>
-        <form onSubmit={handleSave} className="adm-form-grid cols-3">
-          <div className="field full"><label>Name *</label><input className="input" required value={name} onChange={(e) => setName(e.target.value)} /></div>
-          <div className="field">
-            <label>Parent category</label>
-            <select className="input" value={parentId} onChange={(e) => setParentId(e.target.value)}>
-              <option value="">None (top-level)</option>
-              {parentOptions.filter((o) => o.id !== editing?.id).map((o) => <option key={o.id} value={o.id}>{o.label}</option>)}
-            </select>
-          </div>
-          <div className="field"><label>Priority</label><input className="input" type="number" value={priority} onChange={(e) => setPriority(e.target.value)} /></div>
-          <div className="field">
-            <label>Fuel type (root/fuel-family categories only)</label>
-            <select className="input" value={fuelType} onChange={(e) => setFuelType(e.target.value)}>
-              <option value="">— none —</option>
-              {FUEL_TYPES.map((f) => <option key={f} value={f}>{f.replace(/_/g, " ")}</option>)}
-            </select>
-          </div>
-          <div className="field"><label>Meta title</label><input className="input" value={metaTitle} onChange={(e) => setMetaTitle(e.target.value)} /></div>
-          <div className="field"><label>Meta description</label><input className="input" value={metaDescription} onChange={(e) => setMetaDescription(e.target.value)} /></div>
-          <div className="field full"><label>Description</label><textarea className="input" value={description} onChange={(e) => setDescription(e.target.value)} /></div>
-          <div className="field"><label>Image</label><input className="input" type="file" accept="image/*" onChange={(e) => setImageFile(e.target.files?.[0] ?? null)} /></div>
-          <div className="field full">
-            <button type="submit" className="btn btn-primary" disabled={saving} style={{ alignSelf: "flex-start" }}>
-              {saving ? "Saving…" : editing ? "Save changes" : "Save category"}
-            </button>
-            {editing && <button type="button" className="btn btn-ghost" onClick={openCreate}>Cancel edit</button>}
-          </div>
-        </form>
+        <h3 className="card-title" style={{ fontSize: 21 }}>Create a category</h3>
+        <CategoryForm key={createFormKey} initial={null} parentOptions={parentOptions} onSubmit={handleCreate} submitLabel="Save category" />
       </div>
 
       <div className="card elev-sm adm-tree-card">
@@ -250,13 +194,15 @@ export default function AdminCategoriesPage() {
           title={String(detail.category.name ?? "Category")}
           subtitle={`Depth: ${detail.depth} · Priority: ${detail.category.priority ?? 0}`}
           status={detail.category.isActive ? "Active" : "Inactive"}
-          tabs={[{ key: "overview", label: "Overview" }, { key: "activity", label: "Activity" }]}
+          tabs={[{ key: "overview", label: "Overview" }, { key: "edit", label: "Edit" }, { key: "activity", label: "Activity" }]}
           activeTab={drawerTab}
           onTabChange={setDrawerTab}
           onClose={() => setDetail(null)}
           actions={
             <>
-              <button type="button" className="btn btn-primary" onClick={() => openEdit(detail.category)}>Edit</button>
+              {drawerTab !== "edit" && (
+                <button type="button" className="btn btn-primary" onClick={() => setDrawerTab("edit")}>Edit</button>
+              )}
               <button
                 type="button"
                 className="btn btn-secondary"
@@ -268,20 +214,11 @@ export default function AdminCategoriesPage() {
               </button>
               <button
                 type="button"
-                className="btn btn-ghost"
+                className="btn btn-secondary"
                 onClick={() => { if (confirm(`Soft delete "${detail.category.name}"?`)) runAction(() => categoriesApi.remove(detail.category.id), "Category soft deleted."); }}
               >
                 Soft delete
               </button>
-              {admin?.role === "SUPER_ADMIN" && (
-                <button
-                  type="button"
-                  className="btn btn-ghost"
-                  onClick={() => { if (confirm(`Permanently delete "${detail.category.name}"? This cannot be undone.`)) runAction(() => categoriesApi.hardDelete(detail.category.id), "Category permanently deleted."); }}
-                >
-                  Delete permanently
-                </button>
-              )}
             </>
           }
         >
@@ -302,6 +239,15 @@ export default function AdminCategoriesPage() {
                 onAdd={() => runAction(() => categoriesApi.addNote(detail.category.id, note), "Note added.", true).then(() => setNote(""))}
               />
             </>
+          ) : drawerTab === "edit" ? (
+            <CategoryForm
+              key={detail.category.id}
+              initial={detail.category}
+              parentOptions={parentOptions}
+              onSubmit={handleUpdate}
+              onCancel={() => setDrawerTab("overview")}
+              submitLabel="Save changes"
+            />
           ) : (
             <p style={{ fontSize: 13.5, color: "var(--color-neutral-600)" }}>
               There's no activity log for categories yet — the backend doesn't expose a per-category audit trail.
