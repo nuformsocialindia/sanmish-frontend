@@ -1,13 +1,22 @@
 "use client";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { auth as authApi, ApiError } from "@/lib/api";
 import AuthShell from "@/components/AuthShell";
 
 export default function SignupPage() {
+  return (
+    <Suspense fallback={null}>
+      <SignupPageInner />
+    </Suspense>
+  );
+}
+
+function SignupPageInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { login } = useAuth();
 
   const [step, setStep] = useState<"details" | "otp" | "done">("details");
@@ -61,7 +70,8 @@ export default function SignupPage() {
       const { user } = await authApi.signupVerify(email, otp);
       login({ ...user, mobile });
       setStep("done");
-      setTimeout(() => router.push("/"), 900);
+      const next = searchParams.get("next") || "/";
+      setTimeout(() => router.push(next), 900);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Invalid or expired OTP.");
     } finally {
@@ -160,7 +170,11 @@ export default function SignupPage() {
         {step !== "done" && (
           <>
             <div className="auth-divider"><span>Already have an account?</span></div>
-            <Link href="/login" className="btn btn-ghost" style={{ width: "100%" }}>
+            <Link
+              href={searchParams.get("next") ? `/login?next=${encodeURIComponent(searchParams.get("next")!)}` : "/login"}
+              className="btn btn-ghost"
+              style={{ width: "100%" }}
+            >
               Login instead
             </Link>
           </>

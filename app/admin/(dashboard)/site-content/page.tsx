@@ -5,11 +5,13 @@ import { keyForIconMarkup } from "@/lib/sectionIcons";
 import { DEFAULT_MISSION_VISION } from "@/components/AboutSections";
 import { DEFAULT_CONTACT_METHODS, DEFAULT_CONTACT_DETAILS } from "@/components/ContactSections";
 import { DEFAULT_WHY_SERVICES_ITEMS } from "@/components/ServicesSections";
+import { DEFAULT_HOME_WHY_ITEMS } from "@/components/ContentSections";
 import {
   ABOUT_STATS, STORY_POINTS, CORE_VALUES, JOURNEY, TEAM, CERTIFICATIONS, BRANDS, TESTIMONIALS,
   SUPPLIER_FILTERS, SUPPLIERS, SUPPLIER_STATS, SUPPLIER_WHY_ITEMS, SUPPLIER_JOIN_STEPS, SUPPLIER_BENEFITS,
   SUPPLIER_TESTIMONIALS, SUPPLIER_FAQ, OFFICES, CONTACT_FAQ,
   PROCESS_STEPS, INDUSTRIES, SERVICE_STATS, SERVICE_TESTIMONIALS, SERVICE_FAQ, SERVICES,
+  STATS, HOW_IT_WORKS, BUYERS_LOVE,
 } from "@/lib/data";
 
 // lib/data.ts still stores `icon` as raw SVG markup for these sections —
@@ -169,19 +171,41 @@ const SERVICES_SECTIONS: SectionDef[] = [
   },
 ];
 
+const HOME_SECTIONS: SectionDef[] = [
+  { key: "stats", path: "/home/stats", title: "Homepage — Stats", itemLabel: "stat", fields: statsFields, defaultItems: STATS },
+  { key: "why", path: "/home/why-items", title: "Homepage — Why choose us", itemLabel: "point", fields: pointFields, defaultItems: DEFAULT_HOME_WHY_ITEMS },
+  {
+    key: "how-it-works", path: "/home/how-it-works", title: "Homepage — How it works", itemLabel: "step",
+    fields: [{ key: "title", label: "Title", type: "text" }, { key: "desc", label: "Description", type: "textarea" }, { key: "icon", label: "Icon", type: "icon" }],
+    defaultItems: withIconKeys(HOW_IT_WORKS),
+  },
+  { key: "buyers-love", path: "/home/buyers-love", title: "Homepage — Why buyers love us", itemLabel: "benefit", fields: iconCardFields, defaultItems: withIconKeys(BUYERS_LOVE) },
+];
+
 export default function SiteContentPage() {
-  const [page, setPage] = useState<"about" | "suppliers" | "contact" | "services">("about");
+  const [page, setPage] = useState<"home" | "about" | "suppliers" | "contact" | "services">("home");
   const [active, setActive] = useState<SectionDef | null>(null);
-  const sections = page === "about" ? ABOUT_SECTIONS : page === "suppliers" ? SUPPLIERS_SECTIONS : page === "contact" ? CONTACT_SECTIONS : SERVICES_SECTIONS;
+  const sections =
+    page === "home" ? HOME_SECTIONS :
+    page === "about" ? ABOUT_SECTIONS :
+    page === "suppliers" ? SUPPLIERS_SECTIONS :
+    page === "contact" ? CONTACT_SECTIONS : SERVICES_SECTIONS;
 
   return (
     <div className="adm-list-block">
       <div className="adm-tab-bar">
+        <button type="button" className={page === "home" ? "active" : ""} onClick={() => setPage("home")}>Homepage</button>
         <button type="button" className={page === "about" ? "active" : ""} onClick={() => setPage("about")}>About page</button>
         <button type="button" className={page === "suppliers" ? "active" : ""} onClick={() => setPage("suppliers")}>Suppliers page</button>
         <button type="button" className={page === "contact" ? "active" : ""} onClick={() => setPage("contact")}>Contact page</button>
         <button type="button" className={page === "services" ? "active" : ""} onClick={() => setPage("services")}>Services page</button>
       </div>
+
+      {page === "home" && (
+        <p style={{ color: "var(--color-neutral-600)", fontSize: 13.5, margin: "4px 0 12px" }}>
+          The homepage brand marquee and testimonials are shared with the About page — edit them under the About page tab (&ldquo;Brand names&rdquo; and &ldquo;Testimonials&rdquo;) and both pages update.
+        </p>
+      )}
 
       <div className="card elev-sm adm-table-card">
         <table className="table">

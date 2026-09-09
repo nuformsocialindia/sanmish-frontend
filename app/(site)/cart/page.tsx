@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useScrollAnimations } from "@/lib/useScrollAnimations";
 import { useCart } from "@/lib/cart-context";
+import { useAuth } from "@/lib/auth-context";
 import { slugify } from "@/lib/slug";
 import { getAllProducts } from "@/lib/productLookup";
 import SimilarProductCard from "@/components/SimilarProductCard";
@@ -13,6 +14,7 @@ const GST_RATE = 0.05;
 export default function CartPage() {
   useScrollAnimations();
   const { items, removeItem, setQty } = useCart();
+  const { user } = useAuth();
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
   const isSelected = (slug: string) => selected.size === 0 || selected.has(slug);
@@ -157,7 +159,7 @@ export default function CartPage() {
                   </p>
                 )}
 
-                <Link href="/checkout" className="btn btn-primary" style={{ width: "100%", marginTop: 14 }}>
+                <Link href={user ? "/checkout" : "/checkout/auth"} className="btn btn-primary" style={{ width: "100%", marginTop: 14 }}>
                   Proceed to Checkout
                 </Link>
                 <p className="cart-summary-note">

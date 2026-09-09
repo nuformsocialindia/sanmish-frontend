@@ -147,7 +147,11 @@ function LoginPageInner() {
         {step !== "done" && (
           <>
             <div className="auth-divider"><span>New to SANMISH?</span></div>
-            <Link href="/signup" className="btn btn-ghost" style={{ width: "100%" }}>
+            <Link
+              href={searchParams.get("next") ? `/signup?next=${encodeURIComponent(searchParams.get("next")!)}` : "/signup"}
+              className="btn btn-ghost"
+              style={{ width: "100%" }}
+            >
               Create a free account
             </Link>
           </>

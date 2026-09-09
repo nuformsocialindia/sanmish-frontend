@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useScrollAnimations } from "@/lib/useScrollAnimations";
 import { useCart } from "@/lib/cart-context";
 import { useWishlist } from "@/lib/wishlist-context";
+import { useAuth } from "@/lib/auth-context";
 import { type ProductDetail } from "@/lib/productLookup";
 import { BULK_TIERS, MIN_ORDER_QTY, tierForQty, unitPriceForQty, computeUnitPricing } from "@/lib/pricingTiers";
 import SimilarProductCard from "@/components/SimilarProductCard";
@@ -49,6 +50,7 @@ export default function ProductDetailView({
   const router = useRouter();
   const { addItem } = useCart();
   const { isWishlisted, toggleItem } = useWishlist();
+  const { user } = useAuth();
   const wishlisted = isWishlisted(product.slug);
 
   // API-sourced products carry the same server-computed GST pricing the admin
@@ -69,8 +71,10 @@ export default function ProductDetailView({
 
   // Real volume-pricing slabs from the admin (only present on API products
   // with a configured ladder). When absent, price is flat at any quantity.
-  const realTiers = isApiPriced && product.priceSlabs && product.priceSlabs.length > 0
-    ? product.priceSlabs.map((s) => ({
+  // Always sorted ascending by min quantity — the admin API doesn't
+  // guarantee slab order, and an unsorted ladder reads as broken/random.
+  const realTiersRaw = isApiPriced && product.priceSlabs && product.priceSlabs.length > 0
+    ? [...product.priceSlabs].sort((a, b) => a.minQty - b.minQty).map((s) => ({
         label: s.maxQty ? `${s.minQty} - ${s.maxQty}` : `${s.minQty}+`,
         min: s.minQty,
         max: s.maxQty,
@@ -78,21 +82,34 @@ export default function ProductDetailView({
       }))
     : null;
 
+  // If the admin never configured an open-ended "request a quote" slab above
+  // the highest priced tier, synthesize one so the ladder always ends the
+  // same way the mock/demo pricing does — the trailing tier is what tells a
+  // buyer "yes, we still sell above this quantity, just talk to us."
+  const lastRealTier = realTiersRaw?.[realTiersRaw.length - 1];
+  const realTiers = realTiersRaw && lastRealTier && lastRealTier.max !== null
+    ? [...realTiersRaw, { label: `${lastRealTier.max + 1}+`, min: lastRealTier.max + 1, max: null, sellingPrice: null }]
+    : realTiersRaw;
+
   const activeRealTier = realTiers
     ? realTiers.find((t) => qty >= t.min && (t.max === null || qty <= t.max)) ?? realTiers[0]
     : null;
 
-  // Per-tier display price + "save X%" vs. the first (lowest-quantity) tier.
+  // Per-tier display price + "save X%" vs. the regular (non-bulk) unit
+  // price, so even the first/smallest tier shows its savings — matching how
+  // the demo BULK_TIERS ladder always shows a discount on every priced row.
+  const gstRate = product.gstRate ?? 18;
+  const priceIncludesGst = product.priceIncludesGst ?? true;
+  const gstApplicable = product.gstApplicable ?? true;
+  const regularUnitPrice = product.priceValue != null
+    ? round2(computeUnitPricing(product.priceValue, gstRate, priceIncludesGst, gstApplicable).grandTotal)
+    : null;
   const realTierRows = realTiers?.map((tier) => {
-    const gstRate = product.gstRate ?? 18;
-    const priceIncludesGst = product.priceIncludesGst ?? true;
-    const gstApplicable = product.gstApplicable ?? true;
     const tierPrice = tier.sellingPrice == null
       ? null
       : round2(computeUnitPricing(tier.sellingPrice, gstRate, priceIncludesGst, gstApplicable).grandTotal);
     return { ...tier, tierPrice };
   });
-  const firstTierPrice = realTierRows?.[0]?.tierPrice ?? null;
 
   const basePrice = product.priceValue;
   let unitPrice: number | null;
@@ -421,8 +438,8 @@ export default function ProductDetailView({
                     </div>
                     {realTierRows.map((tier) => {
                       const isActive = activeRealTier?.label === tier.label;
-                      const savePct = tier.tierPrice != null && firstTierPrice && firstTierPrice > tier.tierPrice
-                        ? round2(((firstTierPrice - tier.tierPrice) / firstTierPrice) * 100)
+                      const savePct = tier.tierPrice != null && regularUnitPrice && regularUnitPrice > tier.tierPrice
+                        ? round2(((regularUnitPrice - tier.tierPrice) / regularUnitPrice) * 100)
                         : 0;
                       return (
                         <label key={tier.label} className={`pdp-bmsm-row${isActive ? " active" : ""}`}>
@@ -479,14 +496,14 @@ export default function ProductDetailView({
                   onClick={() => {
                     if (unitPrice == null) return;
                     addItem({ ...product, priceValue: unitPrice, priceLabel: inr(unitPrice) }, qty);
-                    router.push("/checkout");
+                    router.push(user ? "/checkout" : "/checkout/auth");
                   }}
                 >
                   Buy Now
                 </button>
               </div>
               <Link
-                href="/contact"
+                href={`/contact?productSlug=${encodeURIComponent(product.slug)}&productName=${encodeURIComponent(product.title)}`}
                 className={`btn pdp-quote-bulk-btn${unitPrice == null ? " active" : ""}`}
               >
                 Request Quote for Bulk
@@ -517,7 +534,7 @@ export default function ProductDetailView({
             <h2>Need a formal quotation for this item?</h2>
             <p>Share your quantity and delivery location — our team will get back with pricing within hours.</p>
             <div className="cta-btns">
-              <Link href="/contact" className="btn btn-white">
+              <Link href={`/contact?productSlug=${encodeURIComponent(product.slug)}&productName=${encodeURIComponent(product.title)}`} className="btn btn-white">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><path d="M14 2v6h6" />
                 </svg>

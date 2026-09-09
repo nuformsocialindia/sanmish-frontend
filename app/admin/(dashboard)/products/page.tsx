@@ -699,6 +699,8 @@ export default function AdminProductsPage() {
             </div>
           </div>
         </div>
+
+        <GalleryCropModal files={galleryCropQueue} onComplete={handleGalleryCropComplete} />
       </form>
     );
   }

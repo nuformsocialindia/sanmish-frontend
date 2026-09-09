@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { SERVICES, STATS, BRANDS, HOW_IT_WORKS, BUYERS_LOVE } from "@/lib/data";
+import { iconMarkup } from "@/lib/sectionIcons";
 import type { ApiBrand, ApiService } from "@/lib/publicApi";
 
 const DEFAULT_SERVICE_ICON = `<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 15l2 2 4-4"/>`;
@@ -8,7 +9,21 @@ function normalizeApiServices(apiServices: ApiService[]) {
   return apiServices.map((s) => ({ t: s.name, d: s.summary, i: DEFAULT_SERVICE_ICON }));
 }
 
-export function WhySection() {
+type Stat = { count: number; suffix: string; label: string };
+type WhyItem = { t: string; s: string };
+type Step = { title: string; desc: string; icon: string };
+type IconCard = { icon: string; title: string; desc: string };
+
+export const DEFAULT_HOME_WHY_ITEMS: WhyItem[] = [
+  { t: "100% Verified Suppliers", s: "Documented & audited" },
+  { t: "Industry Experts", s: "Gas-sector specialists" },
+  { t: "Fast RFQ", s: "Quotes in hours" },
+  { t: "Bulk Orders", s: "Volume pricing" },
+  { t: "Secure Transactions", s: "Protected payments" },
+  { t: "Installation & AMC", s: "Lifecycle support" },
+];
+
+export function WhySection({ items = DEFAULT_HOME_WHY_ITEMS }: { items?: WhyItem[] }) {
   return (
     <section className="section why" id="why">
       <div className="wrap why-grid">
@@ -67,14 +82,7 @@ export function WhySection() {
             We bring the rigour of industrial procurement to alternative fuel infrastructure — so buyers source with confidence and manufacturers reach the right customers.
           </p>
           <div className="why-list">
-            {[
-              { t: "100% Verified Suppliers", s: "Documented & audited" },
-              { t: "Industry Experts", s: "Gas-sector specialists" },
-              { t: "Fast RFQ", s: "Quotes in hours" },
-              { t: "Bulk Orders", s: "Volume pricing" },
-              { t: "Secure Transactions", s: "Protected payments" },
-              { t: "Installation & AMC", s: "Lifecycle support" },
-            ].map((item, i) => (
+            {items.map((item, i) => (
               <div key={item.t} className={`why-item reveal d${(i % 2) + 1}`}>
                 <div className="ck">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
@@ -125,7 +133,7 @@ export function ServicesSection({ apiServices = [] }: { apiServices?: ApiService
   );
 }
 
-export function StatsSection() {
+export function StatsSection({ stats = STATS }: { stats?: Stat[] }) {
   return (
     <section className="section stats" id="stats">
       <div className="blob g" /><div className="blob b" />
@@ -137,7 +145,7 @@ export function StatsSection() {
           <h2 className="reveal d1">India&rsquo;s clean energy marketplace, by the numbers</h2>
         </div>
         <div className="stat-grid">
-          {STATS.map((s, i) => (
+          {stats.map((s, i) => (
             <div key={s.label} className={`stat reveal${i > 0 ? ` d${i}` : ""}`}>
               <div className="num" data-count={String(s.count)} data-suffix={s.suffix}>0</div>
               <div className="lbl">{s.label}</div>
@@ -170,7 +178,7 @@ export function BrandsSection({ names = BRANDS, apiBrands = [] }: { names?: stri
   );
 }
 
-export function HowItWorks() {
+export function HowItWorks({ steps = HOW_IT_WORKS }: { steps?: Step[] }) {
   return (
     <section className="section steps">
       <div className="wrap">
@@ -182,11 +190,11 @@ export function HowItWorks() {
         <div className="steps-row">
           <div className="steps-line" />
           <div className="steps-pulse" />
-          {HOW_IT_WORKS.map((step, i) => (
+          {steps.map((step, i) => (
             <div key={step.title} className={`step reveal${i > 0 ? ` d${i}` : ""}`}>
               <div className="step-circle">
-                <span className="step-n">{step.n}</span>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" dangerouslySetInnerHTML={{ __html: step.icon }} />
+                <span className="step-n">{i + 1}</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" dangerouslySetInnerHTML={{ __html: iconMarkup(step.icon) }} />
               </div>
               <h3>{step.title}</h3>
               <p>{step.desc}</p>
@@ -198,7 +206,7 @@ export function HowItWorks() {
   );
 }
 
-export function BuyersLove() {
+export function BuyersLove({ items = BUYERS_LOVE }: { items?: IconCard[] }) {
   return (
     <section className="section love">
       <div className="wrap">
@@ -207,10 +215,10 @@ export function BuyersLove() {
           <h2 className="reveal d1">Why buyers <span className="grad-text">love us</span></h2>
         </div>
         <div className="love-grid">
-          {BUYERS_LOVE.map((item, i) => (
+          {items.map((item, i) => (
             <div key={item.title} className={`love-card reveal${i > 0 ? ` d${i}` : ""}`}>
               <div className="love-ic">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" dangerouslySetInnerHTML={{ __html: item.icon }} />
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" dangerouslySetInnerHTML={{ __html: iconMarkup(item.icon) }} />
               </div>
               <h3>{item.title}</h3>
               <p>{item.desc}</p>

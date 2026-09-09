@@ -62,6 +62,33 @@ export type ApplyVendorPayload = {
 
 export type ApplyVendorResult = { id: string; businessName: string; verificationStatus: string };
 
+export type EnquiryType = "QUOTE_REQUEST" | "BECOME_SELLER" | "SERVICE" | "SUPPORT" | "GENERAL";
+
+export type CreateEnquiryPayload = {
+  type: EnquiryType;
+  name: string;
+  email: string;
+  message: string;
+  company?: string;
+  phone?: string;
+  city?: string;
+  subject?: string;
+  quantity?: number;
+  deliveryPincode?: string;
+  productSlug?: string;
+  serviceSlug?: string;
+};
+
+export type CreateEnquiryResult = { id: string; reference: string; status: string };
+
+// Public contact form / "Request Quote for Bulk" submission (docs/public-api.md:
+// POST /public/enquiries). No auth — creates an Enquiry row an admin triages
+// in /admin/enquiries; productSlug (if present) links it to that product and
+// the backend derives `source` (PRODUCT_PAGE vs CONTACT_PAGE) from it itself.
+export const enquiries = {
+  create: (payload: CreateEnquiryPayload) => request<CreateEnquiryResult>("/public/enquiries", payload),
+};
+
 export const vendors = {
   apply: (payload: ApplyVendorPayload) => request<ApplyVendorResult>("/public/vendors/apply", payload),
 };
