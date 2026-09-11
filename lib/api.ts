@@ -92,3 +92,71 @@ export const enquiries = {
 export const vendors = {
   apply: (payload: ApplyVendorPayload) => request<ApplyVendorResult>("/public/vendors/apply", payload),
 };
+
+export type CheckoutItemPayload = { productSlug: string; quantity: number };
+
+export type CreateCheckoutPayload = {
+  items: CheckoutItemPayload[];
+  company?: string;
+  contact?: string;
+  phone?: string;
+  address: string;
+  city: string;
+  state: string;
+  pincode: string;
+};
+
+export type CreateCheckoutResult = {
+  order: { id: string; orderNumber: string } | null;
+  rfqs: { id: string; rfqNumber: string; productName: string }[];
+};
+
+// Logged-in checkout (docs/public-api.md: POST /public/checkout). Requires
+// the buyer session cookie. Priced catalogue items become a real Order
+// (order.orderNumber); quote-only items each become an Rfq (rfqs[]) since
+// there's no fixed price to lock in until a vendor quotes one — a cart can
+// contain both. A guest cart has no userId to attach, so it goes through
+// enquiries.create instead.
+export const checkout = {
+  submit: (payload: CreateCheckoutPayload) => request<CreateCheckoutResult>("/public/checkout", payload),
+};
+
+export type MyOrderItem = {
+  id: string;
+  quantity: number;
+  unitPrice: string | number;
+  basePrice: string | number;
+  gstAmount: string | number;
+  lineTotal: string | number;
+  product: { title: string; slug: string; images: { url: string }[] };
+};
+
+export type MyOrder = {
+  id: string;
+  orderNumber: string;
+  status: string;
+  subtotal: string | number;
+  gstAmount: string | number;
+  totalAmount: string | number;
+  shippingAddress: { line1?: string; city?: string; state?: string; pincode?: string } | null;
+  createdAt: string;
+  items: MyOrderItem[];
+};
+
+async function getRequest<T>(path: string): Promise<T> {
+  const res = await fetch(`${API_URL}${path}`, { credentials: "include" });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new ApiError(data.error || "Something went wrong. Please try again.", res.status);
+  }
+  return data as T;
+}
+
+// Buyer's own real orders (docs/public-api.md: GET /public/account/orders).
+// Requires the buyer session cookie — this is what checkout's created Order
+// actually looks like, so account pages show the same orderNumber the admin
+// panel does instead of a separate client-only id.
+export const myOrders = {
+  list: () => getRequest<MyOrder[]>("/public/account/orders"),
+  get: (orderNumber: string) => getRequest<MyOrder>(`/public/account/orders/${encodeURIComponent(orderNumber)}`),
+};

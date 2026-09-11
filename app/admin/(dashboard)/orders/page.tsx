@@ -6,7 +6,7 @@ import { useQueryState } from "@/lib/admin/useQueryState";
 import { useAdminToast } from "@/components/admin/Toast";
 import { TableSkeleton, EmptyState, ErrorBanner } from "@/components/admin/ListStates";
 import StatusTag from "@/components/admin/StatusTag";
-import Drawer, { FieldGrid, Field, NotesThread, Timeline } from "@/components/admin/Drawer";
+import { FieldGrid, Field, NotesThread, Timeline } from "@/components/admin/Drawer";
 import Icon from "@/components/admin/Icon";
 
 type Address = { line1?: string; line2?: string; city?: string; state?: string; pincode?: string };
@@ -58,7 +58,6 @@ export default function AdminOrdersPage() {
   const [selected, setSelected] = useState<string[]>([]);
 
   const [detail, setDetail] = useState<Order | null>(null);
-  const [drawerTab, setDrawerTab] = useState("line-items");
   const [timeline, setTimeline] = useState<Record<string, unknown>[]>([]);
   const [note, setNote] = useState("");
   const [nextStatus, setNextStatus] = useState("");
@@ -77,7 +76,6 @@ export default function AdminOrdersPage() {
 
   const openDetail = (o: Order) => {
     setDetail(o);
-    setDrawerTab("line-items");
     ordersApi.get(o.id).then((d) => { setDetail(d as Order); setNextStatus(String(d.status ?? "")); }).catch(() => {});
     ordersApi.timeline(o.id).then(setTimeline).catch(() => setTimeline([]));
   };
@@ -175,87 +173,110 @@ export default function AdminOrdersPage() {
       )}
 
       {detail && (
-        <Drawer
-          kicker="Orders"
-          title={detail.orderNumber ?? detail.id}
-          subtitle={`${detail.user?.name ?? "—"} · ${detail.items?.length ?? 0} line items · placed ${formatDate(detail.createdAt)}`}
-          status={displayStatus(detail.status)}
-          tabs={[{ key: "line-items", label: "Line items" }, { key: "customer", label: "Customer" }, { key: "timeline", label: "Timeline" }, { key: "documents", label: "Documents" }]}
-          activeTab={drawerTab}
-          onTabChange={setDrawerTab}
-          onClose={() => setDetail(null)}
-          actions={
-            <>
-              <button type="button" className="btn btn-primary" onClick={() => runAction(() => ordersApi.approve(detail.id), "Order approved.")}>Approve</button>
-              <button type="button" className="btn btn-ghost" onClick={() => runAction(() => ordersApi.cancel(detail.id), "Order cancelled.")}>Cancel order</button>
-              <button type="button" className="btn btn-secondary" onClick={() => generateFile(() => ordersApi.invoice(detail.id), "Invoice")}>Generate invoice</button>
-              <button type="button" className="btn btn-secondary" onClick={() => generateFile(() => ordersApi.packingSlip(detail.id), "Packing slip")}>Generate packing slip</button>
-              <button type="button" className="btn btn-ghost" onClick={() => runAction(() => ordersApi.returnOrder(detail.id), "Return initiated.")}>Initiate return</button>
-            </>
-          }
-        >
-          {drawerTab === "line-items" && (
-            <>
-              <FieldGrid>
-                <Field label="Order value" value={money(Number(detail.totalAmount ?? 0))} />
-                <Field label="Vendor" value={vendorName(detail)} />
-                <Field label="Coupon" value={detail.couponCode ? `${detail.couponCode} (−${money(Number(detail.couponDiscount ?? 0))})` : "—"} />
-                <Field label="Place of supply" value={detail.placeOfSupply ?? "—"} />
-                <Field label="GST breakup" value={detail.gstBreakup ? `CGST ${money(Number(detail.gstBreakup.cgst ?? 0))} · SGST ${money(Number(detail.gstBreakup.sgst ?? 0))} · IGST ${money(Number(detail.gstBreakup.igst ?? 0))}` : "—"} />
-              </FieldGrid>
+        <div className="adm-fullpage-backdrop" onClick={() => setDetail(null)}>
+          <div className="adm-fullpage-panel elev-lg" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+            <div className="adm-fullpage-head">
               <div>
-                <div className="adm-section-label">Update status</div>
-                <div style={{ display: "flex", gap: 8 }}>
-                  <select className="input" style={{ maxWidth: 220 }} value={nextStatus} onChange={(e) => setNextStatus(e.target.value)}>
-                    {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{s}</option>)}
-                  </select>
-                  <button type="button" className="btn btn-secondary" onClick={() => runAction(() => ordersApi.setStatus(detail.id, nextStatus), "Status updated.")}>Update</button>
+                <div className="adm-fullpage-kicker">Orders</div>
+                <div className="adm-fullpage-title">
+                  {detail.orderNumber ?? detail.id}
+                  <StatusTag status={displayStatus(detail.status)} />
+                </div>
+                <div className="adm-fullpage-sub">
+                  {detail.user?.name ?? "—"} · {detail.items?.length ?? 0} line item{(detail.items?.length ?? 0) === 1 ? "" : "s"} · placed {formatDate(detail.createdAt)}
                 </div>
               </div>
-              {(detail.items?.length ?? 0) > 0 && (
-                <div>
-                  <div className="adm-section-label">Items (frozen tax snapshot at time of purchase)</div>
-                  <table className="table">
-                    <thead><tr><th>Product</th><th className="num">Qty</th><th className="num">MRP</th><th className="num">Base price</th><th className="num">GST</th><th className="num">Line total</th></tr></thead>
-                    <tbody>
-                      {detail.items!.map((it) => (
-                        <tr key={it.id}>
-                          <td>{it.product?.title ?? it.product?.name ?? "—"}</td>
-                          <td className="num">{it.quantity}</td>
-                          <td className="num">{it.mrpAtPurchase != null ? money(Number(it.mrpAtPurchase)) : "—"}</td>
-                          <td className="num">{it.basePrice != null ? money(Number(it.basePrice)) : "—"}</td>
-                          <td className="num">{it.gstAmount != null ? money(Number(it.gstAmount)) : "—"}</td>
-                          <td className="num">{money(Number(it.lineTotal ?? 0))}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+              <div className="adm-fullpage-actions">
+                <button type="button" className="btn btn-primary" onClick={() => runAction(() => ordersApi.approve(detail.id), "Order approved.")}>Approve</button>
+                <button type="button" className="btn btn-secondary" onClick={() => generateFile(() => ordersApi.invoice(detail.id), "Invoice")}>Generate invoice</button>
+                <button type="button" className="btn btn-secondary" onClick={() => generateFile(() => ordersApi.packingSlip(detail.id), "Packing slip")}>Generate packing slip</button>
+                <button type="button" className="btn btn-ghost" onClick={() => runAction(() => ordersApi.returnOrder(detail.id), "Return initiated.")}>Initiate return</button>
+                <button type="button" className="btn btn-ghost" onClick={() => runAction(() => ordersApi.cancel(detail.id), "Order cancelled.")}>Cancel order</button>
+                <button type="button" className="btn btn-icon btn-secondary" onClick={() => setDetail(null)} aria-label="Close">
+                  <Icon name="x" size={18} />
+                </button>
+              </div>
+            </div>
+
+            <div className="adm-fullpage-body">
+              <div className="adm-fullpage-grid">
+                <div className="adm-fullpage-main">
+                  {(detail.items?.length ?? 0) > 0 && (
+                    <div className="adm-fullpage-card">
+                      <div className="adm-fullpage-card-title">Items (frozen tax snapshot at time of purchase)</div>
+                      <table className="table table-compact">
+                        <thead><tr><th>Product</th><th className="num">Qty</th><th className="num">MRP</th><th className="num">Base price</th><th className="num">GST</th><th className="num">Line total</th></tr></thead>
+                        <tbody>
+                          {detail.items!.map((it) => (
+                            <tr key={it.id}>
+                              <td>{it.product?.title ?? it.product?.name ?? "—"}</td>
+                              <td className="num">{it.quantity}</td>
+                              <td className="num">{it.mrpAtPurchase != null ? money(Number(it.mrpAtPurchase)) : "—"}</td>
+                              <td className="num">{it.basePrice != null ? money(Number(it.basePrice)) : "—"}</td>
+                              <td className="num">{it.gstAmount != null ? money(Number(it.gstAmount)) : "—"}</td>
+                              <td className="num">{money(Number(it.lineTotal ?? 0))}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  <div className="adm-fullpage-card">
+                    <Timeline events={timeline.map((t) => ({ label: displayStatus(String(t.status ?? "Event")), at: String(t.createdAt ?? ""), by: t.note ? String(t.note) : undefined }))} />
+                  </div>
+
+                  <div className="adm-fullpage-card">
+                    <NotesThread
+                      notes={detail.notes ?? []}
+                      draft={note}
+                      onDraftChange={setNote}
+                      onAdd={() => runAction(() => ordersApi.addNote(detail.id, note), "Note added.").then(() => setNote(""))}
+                    />
+                  </div>
                 </div>
-              )}
-            </>
-          )}
-          {drawerTab === "customer" && (
-            <FieldGrid>
-              <Field label="Name" value={detail.user?.name ?? "—"} />
-              <Field label="Email" value={detail.user?.email ?? "—"} />
-              <Field label="Mobile" value={detail.user?.mobileNumber ?? "—"} />
-              <Field label="Shipping address" value={formatAddress(detail.shippingAddress)} />
-              <Field label="Billing address" value={formatAddress(detail.billingAddress)} />
-            </FieldGrid>
-          )}
-          {drawerTab === "timeline" && (
-            <Timeline events={timeline.map((t) => ({ label: displayStatus(String(t.status ?? "Event")), at: String(t.createdAt ?? ""), by: t.note ? String(t.note) : undefined }))} />
-          )}
-          {drawerTab === "documents" && (
-            <p style={{ fontSize: 13.5, color: "var(--color-neutral-600)" }}>Generate the invoice or packing slip from the action row above.</p>
-          )}
-          <NotesThread
-            notes={detail.notes ?? []}
-            draft={note}
-            onDraftChange={setNote}
-            onAdd={() => runAction(() => ordersApi.addNote(detail.id, note), "Note added.").then(() => setNote(""))}
-          />
-        </Drawer>
+
+                <div className="adm-fullpage-side">
+                  <div className="adm-fullpage-card">
+                    <div className="adm-fullpage-card-title">Update status</div>
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <select className="input" value={nextStatus} onChange={(e) => setNextStatus(e.target.value)}>
+                        {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{s}</option>)}
+                      </select>
+                      <button type="button" className="btn btn-secondary" onClick={() => runAction(() => ordersApi.setStatus(detail.id, nextStatus), "Status updated.")}>Update</button>
+                    </div>
+                  </div>
+
+                  <div className="adm-fullpage-card">
+                    <div className="adm-fullpage-card-title">Order summary</div>
+                    <FieldGrid>
+                      <Field label="Order value" value={money(Number(detail.totalAmount ?? 0))} />
+                      <Field label="Vendor" value={vendorName(detail)} />
+                      <Field label="Coupon" value={detail.couponCode ? `${detail.couponCode} (−${money(Number(detail.couponDiscount ?? 0))})` : "—"} />
+                      <Field label="Place of supply" value={detail.placeOfSupply ?? "—"} />
+                    </FieldGrid>
+                    <div style={{ marginTop: 14 }}>
+                      <Field label="GST breakup" value={detail.gstBreakup ? `CGST ${money(Number(detail.gstBreakup.cgst ?? 0))} · SGST ${money(Number(detail.gstBreakup.sgst ?? 0))} · IGST ${money(Number(detail.gstBreakup.igst ?? 0))}` : "—"} />
+                    </div>
+                  </div>
+
+                  <div className="adm-fullpage-card">
+                    <div className="adm-fullpage-card-title">Customer</div>
+                    <FieldGrid>
+                      <Field label="Name" value={detail.user?.name ?? "—"} />
+                      <Field label="Email" value={detail.user?.email ?? "—"} />
+                      <Field label="Mobile" value={detail.user?.mobileNumber ?? "—"} />
+                    </FieldGrid>
+                    <div style={{ marginTop: 14, display: "flex", flexDirection: "column", gap: 14 }}>
+                      <Field label="Shipping address" value={formatAddress(detail.shippingAddress)} />
+                      <Field label="Billing address" value={formatAddress(detail.billingAddress)} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

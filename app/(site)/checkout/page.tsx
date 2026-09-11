@@ -1,10 +1,10 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useCart } from "@/lib/cart-context";
 import { useAuth } from "@/lib/auth-context";
 import { useAddresses } from "@/lib/address-context";
-import { useOrders } from "@/lib/orders-context";
+import { checkout as checkoutApi, enquiries, ApiError } from "@/lib/api";
 
 const inr = (n: number) => "₹ " + n.toLocaleString("en-IN");
 
@@ -12,9 +12,8 @@ const GST_RATE = 0.05;
 
 export default function CheckoutPage() {
   const { items, subtotal, clearCart } = useCart();
-  const { user } = useAuth();
+  const { user, hydrated } = useAuth();
   const { addresses } = useAddresses();
-  const { addOrder } = useOrders();
 
   const quoteOnlyCount = items.filter((i) => i.priceValue == null).length;
   const baseAmount = subtotal / (1 + GST_RATE);
@@ -22,15 +21,32 @@ export default function CheckoutPage() {
 
   const [submitted, setSubmitted] = useState(false);
   const [refId, setRefId] = useState("");
+  const [rfqNumbers, setRfqNumbers] = useState<string[]>([]);
+  const [orderNumber, setOrderNumber] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   const [company, setCompany] = useState("");
-  const [contact, setContact] = useState(user?.name ?? "");
-  const [phone, setPhone] = useState(user?.mobile ? `+91 ${user.mobile}` : "");
-  const [email, setEmail] = useState(user?.email ?? "");
+  const [contact, setContact] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
   const [pin, setPin] = useState("");
+
+  // `user` isn't known synchronously — auth-context resolves it via an async
+  // /auth/me call, so at first render it's still null even for a logged-in
+  // buyer. Prefilling from a useState initializer would miss that; this
+  // fills in once the real session data arrives (and only prefills empty
+  // fields, so it doesn't clobber anything the buyer already typed while
+  // waiting).
+  useEffect(() => {
+    if (!user) return;
+    setContact((c) => c || user.name);
+    setPhone((p) => p || (user.mobile ? `+91 ${user.mobile}` : ""));
+    setEmail((e) => e || user.email);
+  }, [user]);
 
   const useAddress = (id: string) => {
     const a = addresses.find((addr) => addr.id === id);
@@ -43,18 +59,65 @@ export default function CheckoutPage() {
     setPin(a.pin);
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = e.currentTarget;
     if (!form.checkValidity()) {
       form.reportValidity();
       return;
     }
-    const id = `SM-${Math.floor(100000 + Math.random() * 900000)}`;
-    addOrder({ id, items, subtotal, company, contact, phone, email, address, city, state, pin });
-    setRefId(id);
-    setSubmitted(true);
-    clearCart();
+    if (!hydrated) {
+      // Session check hasn't resolved yet — submitting now risks treating a
+      // logged-in buyer as a guest (enquiry instead of a real order), since
+      // `user` is only known once this flips true. The button is disabled
+      // until then, but guard here too in case of a fast double-submit.
+      return;
+    }
+    setSubmitError("");
+    setSubmitting(true);
+    try {
+      if (user) {
+        const result = await checkoutApi.submit({
+          items: items.map((i) => ({ productSlug: i.slug, quantity: i.qty })),
+          company,
+          contact,
+          phone,
+          address,
+          city,
+          state,
+          pincode: pin,
+        });
+        const refs = [
+          ...(result.order ? [result.order.orderNumber] : []),
+          ...result.rfqs.map((r) => r.rfqNumber),
+        ];
+        setRfqNumbers(refs);
+        setRefId(refs[0] ?? "");
+        setOrderNumber(result.order?.orderNumber ?? null);
+      } else {
+        const itemLines = items
+          .map((i) => `${i.title} — Qty ${i.qty}${i.priceValue != null ? ` @ ₹${i.priceValue}/piece` : " (price on request)"}`)
+          .join("\n");
+        const result = await enquiries.create({
+          type: "QUOTE_REQUEST",
+          name: contact,
+          email,
+          company,
+          phone,
+          city,
+          message: `Quotation request for:\n${itemLines}\n\nDeliver to: ${address}, ${city}, ${state} ${pin}`,
+          deliveryPincode: pin,
+        });
+        setRfqNumbers([result.reference]);
+        setRefId(result.reference);
+      }
+      setSubmitted(true);
+      clearCart();
+    } catch (err) {
+      setSubmitError(err instanceof ApiError ? err.message : "Something went wrong submitting your request. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (submitted) {
@@ -68,12 +131,22 @@ export default function CheckoutPage() {
               </svg>
               <h2>Request submitted</h2>
               <p>
-                Your reference number is <b>{refId}</b>. Our team will review your requirement and follow up
-                with formal pricing and lead times within one business day.
+                {rfqNumbers.length > 1 ? (
+                  <>Your reference numbers are <b>{rfqNumbers.join(", ")}</b>.</>
+                ) : (
+                  <>Your reference number is <b>{rfqNumbers[0] ?? refId}</b>.</>
+                )}{" "}
+                {rfqNumbers[0]?.startsWith("ORD-")
+                  ? "We've confirmed your order — our team will follow up on delivery and payment shortly."
+                  : "Our team will review your requirement and follow up with formal pricing and lead times within one business day."}
               </p>
             </div>
             <div className="cta-btns" style={{ marginTop: 28, justifyContent: "center" }}>
-              <Link href={`/account/orders/${refId}`} className="btn btn-primary">View Order</Link>
+              {orderNumber ? (
+                <Link href={`/account/orders/${orderNumber}`} className="btn btn-primary">View Order</Link>
+              ) : user ? (
+                <Link href="/account/orders" className="btn btn-primary">View My Orders</Link>
+              ) : null}
               <Link href="/products" className="btn btn-ghost">Continue Browsing</Link>
             </div>
           </div>
@@ -171,8 +244,11 @@ export default function CheckoutPage() {
                 <input id="co-pin" name="pin" type="text" inputMode="numeric" placeholder="6-digit PIN" pattern="[0-9]{6}" value={pin} onChange={(e) => setPin(e.target.value)} required />
               </div>
             </div>
-            <button type="submit" className="btn btn-primary form-submit" style={{ width: "100%" }}>
-              Submit Quotation Request
+            {submitError && (
+              <p style={{ color: "var(--color-danger-600, #dc2626)", fontSize: 14 }}>{submitError}</p>
+            )}
+            <button type="submit" className="btn btn-primary form-submit" style={{ width: "100%" }} disabled={submitting || !hydrated}>
+              {submitting ? "Submitting…" : !hydrated ? "Loading…" : "Submit Quotation Request"}
             </button>
           </form>
 

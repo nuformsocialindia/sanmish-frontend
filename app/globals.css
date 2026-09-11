@@ -869,16 +869,15 @@ section[id] { scroll-margin-top: 76px; }
   height: 30px;
   border-radius: 50%;
   border: none;
-  background: rgba(255,255,255,.9);
-  backdrop-filter: blur(6px);
+  background: none;
   display: grid;
   place-items: center;
   cursor: pointer;
   transition: .2s;
 }
 
-.prod-wishlist svg { width: 16px; height: 16px; color: var(--ink-soft); transition: .2s; }
-.prod-wishlist:hover { background: #fff; }
+.prod-wishlist svg { width: 18px; height: 18px; color: var(--ink-soft); transition: .2s; }
+.prod-wishlist:hover { background: rgba(255,255,255,.9); }
 .prod-wishlist:hover svg { color: #e0455a; }
 .prod-wishlist.active svg { color: #e0455a; }
 
@@ -2924,11 +2923,12 @@ input[type=range].f-slider::-webkit-slider-thumb { -webkit-appearance: none; wid
 .account-order-row span { font-size: .8rem; color: var(--muted); }
 .account-order-amount { font-family: 'Poppins'; font-size: 1rem; }
 
-.order-status { display: inline-block; padding: 6px 14px; border-radius: 100px; font-size: .76rem; font-weight: 700; white-space: nowrap; }
-.status-pending-review { background: rgba(245,166,35,.14); color: #b8860b; }
-.status-quote-sent { background: rgba(62,121,189,.12); color: var(--blue); }
-.status-confirmed { background: rgba(123,177,69,.14); color: var(--green-d); }
-.status-delivered { background: rgba(31,41,55,.1); color: var(--ink); }
+.order-status { display: inline-block; padding: 6px 14px; border-radius: 100px; font-size: .76rem; font-weight: 700; white-space: nowrap; text-transform: capitalize; }
+.status-pending-review, .status-pending { background: rgba(245,166,35,.14); color: #b8860b; }
+.status-quote-sent, .status-processing { background: rgba(62,121,189,.12); color: var(--blue); }
+.status-confirmed, .status-approved, .status-shipped { background: rgba(123,177,69,.14); color: var(--green-d); }
+.status-delivered, .status-completed { background: rgba(31,41,55,.1); color: var(--ink); }
+.status-cancelled, .status-rejected, .status-returned { background: rgba(220,38,38,.12); color: #dc2626; }
 
 .order-tracker { display: flex; justify-content: space-between; margin: 28px 0 8px; position: relative; }
 .order-tracker::before { content: ""; position: absolute; top: 6px; left: 5%; right: 5%; height: 2px; background: var(--line); z-index: 0; }

@@ -95,8 +95,8 @@ export function NotesThread({ notes, draft, onDraftChange, onAdd }: {
         ))}
       </div>
       <div className="adm-note-input-row">
-        <input className="input" placeholder="Add a note…" value={draft} onChange={(e) => onDraftChange(e.target.value)} />
-        <button type="button" className="btn btn-secondary" onClick={() => { if (draft.trim()) onAdd(); }}>Add note</button>
+        <textarea className="input" rows={3} placeholder="Add a note…" value={draft} onChange={(e) => onDraftChange(e.target.value)} />
+        <button type="button" className="btn btn-secondary btn-tinted" onClick={() => { if (draft.trim()) onAdd(); }}>Add note</button>
       </div>
     </div>
   );

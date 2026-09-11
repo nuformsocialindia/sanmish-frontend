@@ -652,6 +652,10 @@ export default function AdminProductsPage() {
             <div className="card elev-sm adm-form-card">
               <div className="card-kicker">Media</div>
               <h3 className="card-title" style={{ fontSize: 20 }}>Gallery and documents</h3>
+              <p style={{ fontSize: 12.5, color: "var(--color-neutral-600)", marginTop: -6 }}>
+                Best results: a square photo, at least 640×640px. Square images upload with no cropping — other
+                aspect ratios are shrunk to fit with a white margin, not cut off.
+              </p>
               {editing ? (
                 <>
                   <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>

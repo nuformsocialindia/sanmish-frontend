@@ -1,7 +1,7 @@
 "use client";
 import { useCallback, useRef, useState } from "react";
 import Cropper, { type Area } from "react-easy-crop";
-import { cropToFile } from "@/lib/admin/imageCrop";
+import { cropToFile, containZoom } from "@/lib/admin/imageCrop";
 
 export default function ImageCropPicker({
   label,
@@ -20,7 +20,15 @@ export default function ImageCropPicker({
   const [selectedName, setSelectedName] = useState<string | null>(null);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
+  const [minZoom, setMinZoom] = useState(1);
+  const [naturalSize, setNaturalSize] = useState<{ width: number; height: number } | null>(null);
   const [croppedArea, setCroppedArea] = useState<Area | null>(null);
+  // True once the admin has actually dragged/wheel-zoomed the image or used
+  // the zoom slider — only relevant if they zoom out below the default (see
+  // applyCrop). Detected at the DOM level (onPointerDown/onWheel below),
+  // not react-easy-crop's own onCropChange/onZoomChange — those can echo on
+  // non-interactive updates too.
+  const [touched, setTouched] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [removed, setRemoved] = useState(false);
 
@@ -34,17 +42,33 @@ export default function ImageCropPicker({
       setRawSrc(reader.result as string);
       setCrop({ x: 0, y: 0 });
       setZoom(1);
+      setMinZoom(1);
+      setNaturalSize(null);
+      setTouched(false);
     };
     reader.readAsDataURL(file);
   };
+
+  // Defaults to a normal full-bleed crop (zoom=1, "cover") — matching every
+  // other avatar/logo-style image on the site. minZoom is relaxed below 1
+  // so an admin who wants to include more of a non-square photo can zoom
+  // out and choose that themselves, instead of it happening as a surprise —
+  // it's just not the default, since a letterboxed circle looks worse in
+  // practice than a clean, well-composed cover crop for most photos.
+  const onMediaLoaded = useCallback(({ naturalWidth, naturalHeight }: { naturalWidth: number; naturalHeight: number }) => {
+    setNaturalSize({ width: naturalWidth, height: naturalHeight });
+    setMinZoom(containZoom(naturalWidth, naturalHeight));
+  }, []);
 
   const onCropComplete = useCallback((_: Area, areaPixels: Area) => {
     setCroppedArea(areaPixels);
   }, []);
 
   const applyCrop = async () => {
-    if (!rawSrc || !croppedArea) return;
-    const file = await cropToFile(rawSrc, croppedArea, rawName);
+    if (!rawSrc) return;
+    const area = zoom < 1 && !touched && naturalSize ? { x: 0, y: 0, ...naturalSize } : croppedArea;
+    if (!area) return;
+    const file = await cropToFile(rawSrc, area, rawName);
     setPreviewUrl(URL.createObjectURL(file));
     onChange(file);
     setRawSrc(null);
@@ -117,28 +141,34 @@ export default function ImageCropPicker({
       {rawSrc && (
         <div className="admin-crop-overlay">
           <div className="admin-crop-modal">
-            <div className="admin-crop-stage">
+            <div
+              className="admin-crop-stage"
+              onPointerDown={() => setTouched(true)}
+              onWheel={() => setTouched(true)}
+            >
               <Cropper
                 image={rawSrc}
                 crop={crop}
                 zoom={zoom}
+                minZoom={minZoom}
                 aspect={1}
                 cropShape="round"
                 showGrid={false}
                 onCropChange={setCrop}
                 onZoomChange={setZoom}
                 onCropComplete={onCropComplete}
+                onMediaLoaded={onMediaLoaded}
               />
             </div>
             <div className="admin-crop-controls">
               <label style={{ fontSize: 13, color: "var(--color-neutral-600)" }}>Zoom</label>
               <input
                 type="range"
-                min={1}
+                min={minZoom}
                 max={3}
                 step={0.01}
                 value={zoom}
-                onChange={(e) => setZoom(Number(e.target.value))}
+                onChange={(e) => { setTouched(true); setZoom(Number(e.target.value)); }}
                 style={{ flex: 1 }}
               />
               <button type="button" className="btn btn-ghost" onClick={cancelCrop}>Cancel</button>

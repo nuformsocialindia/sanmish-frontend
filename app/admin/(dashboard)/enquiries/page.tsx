@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { enquiriesApi, adminsApi, downloadCsv, AdminApiError, type Paginated } from "@/lib/admin/api";
 import { formatDate } from "@/lib/admin/format";
 import { useQueryState } from "@/lib/admin/useQueryState";
@@ -15,7 +16,7 @@ type Enquiry = Record<string, unknown> & {
   city?: string | null; subject?: string | null; message?: string; quantity?: number | null; deliveryPincode?: string | null;
   source?: string; status?: string; assignedToAdminId?: string | null; buyerId?: string | null; convertedRfqId?: string | null;
   createdAt?: string; notes?: Record<string, unknown>[];
-  product?: { id: string; title?: string } | null; service?: { id: string; name?: string } | null;
+  product?: { id: string; title?: string; slug?: string } | null; service?: { id: string; name?: string } | null;
 };
 
 const TABS = [
@@ -142,24 +143,25 @@ export default function AdminEnquiriesPage() {
             <thead>
               <tr>
                 <th className="adm-checkbox-col"><input type="checkbox" checked={selected.length === items.length} onChange={(e) => setSelected(e.target.checked ? items.map((i) => i.id) : [])} /></th>
-                <th>Reference</th><th>From</th><th>Type</th><th>Subject</th><th>Received</th><th>Status</th><th className="adm-open-col" />
+                <th>Name</th><th>Email</th><th>Mobile no.</th><th>Message</th><th>Received</th><th className="adm-open-col" />
               </tr>
             </thead>
             <tbody>
               {items.map((e) => (
                 <tr key={e.id} className={selected.includes(e.id) ? "selected" : ""}>
                   <td><input type="checkbox" checked={selected.includes(e.id)} onChange={() => toggleSelect(e.id)} /></td>
-                  <td>{e.reference}</td>
-                  <td>{e.name}<span className="sub-line">{e.email}</span></td>
-                  <td>{String(e.type ?? "—").replace(/_/g, " ")}</td>
-                  <td style={{ maxWidth: 240 }}>{e.subject ?? String(e.message ?? "").slice(0, 60)}</td>
+                  <td>{e.name}</td>
+                  <td>{e.email}</td>
+                  <td>{e.phone ?? "—"}</td>
+                  <td style={{ maxWidth: 240, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title={e.subject ?? e.message ?? ""}>
+                    {e.subject ?? e.message ?? "—"}
+                  </td>
                   <td>{formatDate(e.createdAt)}</td>
-                  <td><span className={`tag ${e.status === "CLOSED" ? "tag-muted" : e.status === "SPAM" ? "tag-adverse" : e.status === "ANSWERED" ? "tag-positive" : "tag-attention"}`}>{e.status}</span></td>
                   <td>
                     {showDeleted ? (
                       <button type="button" className="btn btn-ghost btn-sm" onClick={() => runAction(() => enquiriesApi.restore(e.id), "Enquiry restored.")}>Restore</button>
                     ) : (
-                      <button type="button" className="btn btn-ghost btn-sm" onClick={() => openDetail(e)}>Open</button>
+                      <button type="button" className="btn btn-ghost btn-sm" onClick={() => openDetail(e)}>View details</button>
                     )}
                   </td>
                 </tr>
@@ -175,7 +177,7 @@ export default function AdminEnquiriesPage() {
         <Drawer
           kicker="Contact enquiries"
           title={String(detail.subject ?? detail.reference ?? "Enquiry")}
-          subtitle={`${detail.name ?? "—"} · ${detail.email ?? "—"} · ${formatDate(detail.createdAt)}`}
+          subtitle={formatDate(detail.createdAt)}
           status={detail.status}
           onClose={() => setDetail(null)}
           actions={
@@ -187,23 +189,42 @@ export default function AdminEnquiriesPage() {
           }
         >
           <FieldGrid>
-            <Field label="Company" value={detail.company ?? "—"} />
+            <Field label="Name" value={detail.name ?? "—"} />
+            <Field label="Email" value={detail.email ?? "—"} />
+            {detail.company && <Field label="Company" value={detail.company} />}
             <Field label="Phone" value={detail.phone ?? "—"} />
-            <Field label="City" value={detail.city ?? "—"} />
+            {detail.city && <Field label="City" value={detail.city} />}
             <Field label="Source" value={String(detail.source ?? "—").replace(/_/g, " ")} />
-            <Field label="Related product" value={detail.product?.title ?? "—"} />
-            <Field label="Related service" value={detail.service?.name ?? "—"} />
-            <Field label="Quantity" value={detail.quantity != null ? String(detail.quantity) : "—"} />
-            <Field label="Delivery pincode" value={detail.deliveryPincode ?? "—"} />
+            {detail.product?.title && (
+              <Field
+                label="Related product"
+                value={
+                  detail.product.slug ? (
+                    <Link href={`/products/${detail.product.slug}`} target="_blank" rel="noopener noreferrer" className="adm-field-link">
+                      {detail.product.title} ↗
+                    </Link>
+                  ) : (
+                    detail.product.title
+                  )
+                }
+              />
+            )}
+            {detail.service?.name && <Field label="Related service" value={detail.service.name} />}
+            {detail.quantity != null && <Field label="Quantity" value={String(detail.quantity)} />}
+            {detail.deliveryPincode && <Field label="Delivery pincode" value={detail.deliveryPincode} />}
             <Field
               label="Status"
-              value={String(detail.status ?? "—")}
-              action
-              actionLabel="Change"
-              onAction={() => {
-                const next = window.prompt("New status (NEW, IN_PROGRESS, ANSWERED, CLOSED, SPAM):", String(detail.status ?? ""));
-                if (next) runAction(() => enquiriesApi.update(detail.id, { status: next }), "Status updated.");
-              }}
+              value={
+                <select
+                  className="input adm-inline-select"
+                  value={String(detail.status ?? "NEW")}
+                  onChange={(e) => runAction(() => enquiriesApi.update(detail.id, { status: e.target.value }), "Status updated.")}
+                >
+                  {["NEW", "IN_PROGRESS", "ANSWERED", "CLOSED", "SPAM"].map((s) => (
+                    <option key={s} value={s}>{s.replace(/_/g, " ")}</option>
+                  ))}
+                </select>
+              }
             />
             <Field
               label="Assigned to"
@@ -218,13 +239,19 @@ export default function AdminEnquiriesPage() {
             />
           </FieldGrid>
 
-          <div className="adm-section-label">Message</div>
-          <p style={{ fontSize: 13.5, marginBottom: 16, whiteSpace: "pre-wrap" }}>{String(detail.message ?? "—")}</p>
+          <div>
+            <div className="adm-section-label">Message</div>
+            <p style={{ fontSize: 13.5, margin: 0, whiteSpace: "pre-wrap" }}>{String(detail.message ?? "—")}</p>
+          </div>
 
-          <div className="adm-section-label">Reply by email</div>
-          <input className="input" placeholder="Subject" value={replySubject} onChange={(e) => setReplySubject(e.target.value)} style={{ marginBottom: 8 }} />
-          <textarea className="input" placeholder="Reply body…" value={replyBody} onChange={(e) => setReplyBody(e.target.value)} style={{ marginBottom: 10 }} />
-          <button type="button" className="btn btn-secondary btn-sm" onClick={handleReply} style={{ marginBottom: 20 }}>Send reply</button>
+          <div>
+            <div className="adm-section-label">Reply by email</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              <input className="input" placeholder="Subject" value={replySubject} onChange={(e) => setReplySubject(e.target.value)} />
+              <textarea className="input" rows={5} placeholder="Reply body…" value={replyBody} onChange={(e) => setReplyBody(e.target.value)} />
+              <button type="button" className="btn btn-secondary btn-sm btn-tinted" onClick={handleReply} style={{ alignSelf: "flex-start" }}>Send reply</button>
+            </div>
+          </div>
 
           <NotesThread
             notes={detail.notes ?? []}
