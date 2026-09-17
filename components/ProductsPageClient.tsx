@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useScrollAnimations } from "@/lib/useScrollAnimations";
 import { PageBanner, ListingSearchBand, ListingCTASection } from "@/components/ProductsPageSections";
 import ProductListing from "@/components/ProductListing";
@@ -15,8 +16,11 @@ export default function ProductsPageClient({
   apiBrands: ApiBrand[];
 }) {
   useScrollAnimations();
-  const [searchTerm, setSearchTerm] = useState("");
-  const [searchCategory, setSearchCategory] = useState<string | null>(null);
+  // Seeds from ?search=&category= so a search submitted elsewhere (the
+  // homepage search band) lands here pre-filled, not silently dropped.
+  const searchParams = useSearchParams();
+  const [searchTerm, setSearchTerm] = useState(() => searchParams.get("search") ?? "");
+  const [searchCategory, setSearchCategory] = useState<string | null>(() => searchParams.get("category"));
 
   const scrollToResults = () => {
     document.querySelector(".listing-toolbar")?.scrollIntoView({ behavior: "smooth", block: "start" });

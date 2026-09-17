@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { myOrders, type MyOrder } from "@/lib/api";
 
-const inr = (n: number | string) => "₹ " + Number(n).toLocaleString("en-IN");
+const inr = (n: number | string) => "₹ " + Math.round(Number(n)).toLocaleString("en-IN");
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<MyOrder[] | null>(null);

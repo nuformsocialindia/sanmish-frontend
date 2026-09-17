@@ -1,6 +1,6 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
-import { ordersApi, downloadGenerated, downloadCsv, AdminApiError, type Paginated } from "@/lib/admin/api";
+import { ordersApi, downloadGenerated, downloadCsv, fileUrl, AdminApiError, type Paginated } from "@/lib/admin/api";
 import { money, formatDate, displayStatus } from "@/lib/admin/format";
 import { useQueryState } from "@/lib/admin/useQueryState";
 import { useAdminToast } from "@/components/admin/Toast";
@@ -11,14 +11,15 @@ import Icon from "@/components/admin/Icon";
 
 type Address = { line1?: string; line2?: string; city?: string; state?: string; pincode?: string };
 type OrderItem = {
-  id: string; quantity: number; unitPrice: number; lineTotal: number; product: { id: string; name?: string; title?: string };
-  mrpAtPurchase?: number; basePrice?: number; gstAmount?: number;
+  id: string; quantity: number; unitPrice: number; lineTotal: number;
+  product: { id: string; name?: string; title?: string; images?: { url: string }[] };
+  mrpAtPurchase?: number; basePrice?: number; gstAmount?: number; gstPercent?: number;
 };
 type Order = Record<string, unknown> & {
-  id: string; orderNumber?: string; status?: string; totalAmount?: number; createdAt?: string;
+  id: string; orderNumber?: string; status?: string; totalAmount?: number; subtotal?: number; gstAmount?: number; createdAt?: string;
   shippingAddress?: Address | string | null; billingAddress?: Address | string | null;
   couponCode?: string | null; couponDiscount?: number | null; placeOfSupply?: string | null;
-  gstBreakup?: { cgst?: number; sgst?: number; igst?: number } | null;
+  gstBreakup?: { type?: string; cgst?: number; sgst?: number; igst?: number } | null;
   user?: { id: string; name: string; email: string; mobileNumber?: string };
   vendorAssignments?: { vendor: { id: string; businessName: string } }[];
   items?: OrderItem[];
@@ -190,7 +191,6 @@ export default function AdminOrdersPage() {
                 <button type="button" className="btn btn-primary" onClick={() => runAction(() => ordersApi.approve(detail.id), "Order approved.")}>Approve</button>
                 <button type="button" className="btn btn-secondary" onClick={() => generateFile(() => ordersApi.invoice(detail.id), "Invoice")}>Generate invoice</button>
                 <button type="button" className="btn btn-secondary" onClick={() => generateFile(() => ordersApi.packingSlip(detail.id), "Packing slip")}>Generate packing slip</button>
-                <button type="button" className="btn btn-ghost" onClick={() => runAction(() => ordersApi.returnOrder(detail.id), "Return initiated.")}>Initiate return</button>
                 <button type="button" className="btn btn-ghost" onClick={() => runAction(() => ordersApi.cancel(detail.id), "Order cancelled.")}>Cancel order</button>
                 <button type="button" className="btn btn-icon btn-secondary" onClick={() => setDetail(null)} aria-label="Close">
                   <Icon name="x" size={18} />
@@ -203,22 +203,35 @@ export default function AdminOrdersPage() {
                 <div className="adm-fullpage-main">
                   {(detail.items?.length ?? 0) > 0 && (
                     <div className="adm-fullpage-card">
-                      <div className="adm-fullpage-card-title">Items (frozen tax snapshot at time of purchase)</div>
-                      <table className="table table-compact">
-                        <thead><tr><th>Product</th><th className="num">Qty</th><th className="num">MRP</th><th className="num">Base price</th><th className="num">GST</th><th className="num">Line total</th></tr></thead>
-                        <tbody>
-                          {detail.items!.map((it) => (
-                            <tr key={it.id}>
-                              <td>{it.product?.title ?? it.product?.name ?? "—"}</td>
-                              <td className="num">{it.quantity}</td>
-                              <td className="num">{it.mrpAtPurchase != null ? money(Number(it.mrpAtPurchase)) : "—"}</td>
-                              <td className="num">{it.basePrice != null ? money(Number(it.basePrice)) : "—"}</td>
-                              <td className="num">{it.gstAmount != null ? money(Number(it.gstAmount)) : "—"}</td>
-                              <td className="num">{money(Number(it.lineTotal ?? 0))}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                      <div className="adm-fullpage-card-title">
+                        Items <span style={{ fontWeight: 400, color: "var(--color-neutral-600)" }}>({detail.items!.length})</span>
+                      </div>
+                      <div className="adm-order-items-scroll">
+                        {detail.items!.map((it) => {
+                          const thumb = it.product?.images?.[0]?.url;
+                          return (
+                            <div key={it.id} className="adm-order-item-card">
+                              <div className="adm-order-item-thumb">
+                                {thumb && (
+                                  // eslint-disable-next-line @next/next/no-img-element
+                                  <img src={fileUrl(thumb)} alt="" />
+                                )}
+                              </div>
+                              <div className="adm-order-item-body">
+                                <div style={{ fontWeight: 700, marginBottom: 10 }}>{it.product?.title ?? it.product?.name ?? "—"}</div>
+                                <FieldGrid>
+                                  <Field label="Qty" value={String(it.quantity)} />
+                                  <Field label="MRP" value={it.mrpAtPurchase != null ? money(Number(it.mrpAtPurchase)) : "—"} />
+                                  <Field label="Base price" value={it.basePrice != null ? money(Number(it.basePrice)) : "—"} />
+                                  <Field label="GST %" value={it.gstPercent != null ? `${Number(it.gstPercent)}%` : "—"} />
+                                  <Field label="GST amt" value={it.gstAmount != null ? money(Number(it.gstAmount)) : "—"} />
+                                  <Field label="Total" value={money(Number(it.lineTotal ?? 0))} />
+                                </FieldGrid>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
                   )}
 
@@ -250,13 +263,26 @@ export default function AdminOrdersPage() {
                   <div className="adm-fullpage-card">
                     <div className="adm-fullpage-card-title">Order summary</div>
                     <FieldGrid>
-                      <Field label="Order value" value={money(Number(detail.totalAmount ?? 0))} />
                       <Field label="Vendor" value={vendorName(detail)} />
-                      <Field label="Coupon" value={detail.couponCode ? `${detail.couponCode} (−${money(Number(detail.couponDiscount ?? 0))})` : "—"} />
                       <Field label="Place of supply" value={detail.placeOfSupply ?? "—"} />
+                      <Field
+                        label="GST type"
+                        value={
+                          !detail.gstBreakup
+                            ? "—"
+                            : detail.gstBreakup.type === "IGST"
+                              ? `IGST (${money(Number(detail.gstBreakup.igst ?? 0))})`
+                              : `CGST + SGST (${money(Number(detail.gstBreakup.cgst ?? 0))} + ${money(Number(detail.gstBreakup.sgst ?? 0))})`
+                        }
+                      />
                     </FieldGrid>
-                    <div style={{ marginTop: 14 }}>
-                      <Field label="GST breakup" value={detail.gstBreakup ? `CGST ${money(Number(detail.gstBreakup.cgst ?? 0))} · SGST ${money(Number(detail.gstBreakup.sgst ?? 0))} · IGST ${money(Number(detail.gstBreakup.igst ?? 0))}` : "—"} />
+                    <div className="adm-price-rows" style={{ marginTop: 16 }}>
+                      <div className="adm-price-row"><span>Subtotal</span><span>{money(Number(detail.subtotal ?? 0))}</span></div>
+                      {detail.couponCode && (
+                        <div className="adm-price-row"><span>Coupon ({detail.couponCode})</span><span>−{money(Number(detail.couponDiscount ?? 0))}</span></div>
+                      )}
+                      <div className="adm-price-row"><span>GST</span><span>{money(Number(detail.gstAmount ?? 0))}</span></div>
+                      <div className="adm-price-row"><span>Total</span><span>{money(Number(detail.totalAmount ?? 0))}</span></div>
                     </div>
                   </div>
 

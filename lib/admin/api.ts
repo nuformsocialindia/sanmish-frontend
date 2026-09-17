@@ -396,8 +396,15 @@ export const ordersApi = {
   invoice: (id: string) => get<{ path: string }>(`/admin/orders/${id}/invoice`),
   packingSlip: (id: string) => get<{ path: string }>(`/admin/orders/${id}/packing-slip`),
   addNote: (id: string, note: string) => post<{ ok: true }>(`/admin/orders/${id}/notes`, { note }),
-  returnOrder: (id: string, reason?: string) => post<{ ok: true }>(`/admin/orders/${id}/return`, { reason }),
-  exchangeOrder: (id: string, reason?: string) => post<{ ok: true }>(`/admin/orders/${id}/exchange`, { reason }),
+};
+
+// ---------------------------------------------------------------- Return / exchange requests
+export const returnsApi = {
+  list: (query?: ListQuery) => get<Paginated<Record<string, unknown>>>("/admin/returns", query),
+  get: (id: string) => get<Record<string, unknown>>(`/admin/returns/${id}`),
+  approve: (id: string, adminNote?: string) => post<Record<string, unknown>>(`/admin/returns/${id}/approve`, { adminNote }),
+  reject: (id: string, adminNote?: string) => post<Record<string, unknown>>(`/admin/returns/${id}/reject`, { adminNote }),
+  complete: (id: string) => post<Record<string, unknown>>(`/admin/returns/${id}/complete`),
 };
 
 // ---------------------------------------------------------------- Payments

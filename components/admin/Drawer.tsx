@@ -65,7 +65,7 @@ export function Field({ label, value, action, actionLabel, onAction, actionDisab
   label: string; value: ReactNode; action?: boolean; actionLabel?: string; onAction?: () => void; actionDisabled?: boolean;
 }) {
   return (
-    <div>
+    <div className="adm-field-item">
       <span className="adm-field-item-label">{label}</span>
       <span className="adm-field-item-value">
         {value}

@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import Link from "next/link";
 import { SERVICES, STATS, BRANDS, HOW_IT_WORKS, BUYERS_LOVE } from "@/lib/data";
 import { iconMarkup } from "@/lib/sectionIcons";
 import type { ApiBrand, ApiService } from "@/lib/publicApi";
@@ -93,12 +94,12 @@ export function WhySection({ items = DEFAULT_HOME_WHY_ITEMS }: { items?: WhyItem
               </div>
             ))}
           </div>
-          <a href="#services" className="btn btn-primary reveal d3" style={{ marginTop: 32 }}>
+          <Link href="/services" className="btn btn-primary reveal d3" style={{ marginTop: 32 }}>
             Explore our services
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M5 12h14M12 5l7 7-7 7" />
             </svg>
-          </a>
+          </Link>
         </div>
       </div>
     </section>

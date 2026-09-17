@@ -12,11 +12,18 @@ type Testimonial = { q: string; n: string; r: string; a: string };
 
 export default async function Page() {
   const [
-    apiCategories, apiProducts, apiBrands, apiServices,
+    apiCategories, apiFeaturedProducts, apiTrendingProducts, apiNewArrivals, apiBestsellerProducts, apiBrands, apiServices,
     stats, whyItems, brands, howItWorks, buyersLove, testimonials,
   ] = await Promise.all([
     fetchApiCategories({ flat: true, limit: 50 }),
-    fetchApiProducts({ limit: 20 }),
+    // Featured Equipment / Best Selling / New Arrivals / Bestsellers rails
+    // reflect the admin's own isFeatured/isTrending/isNewArrival/isBestseller
+    // flags — not just whatever happened to load first — so an admin
+    // flipping a flag actually changes what shows up here.
+    fetchApiProducts({ isFeatured: true, limit: 8 }),
+    fetchApiProducts({ isTrending: true, limit: 8 }),
+    fetchApiProducts({ isNewArrival: true, limit: 8 }),
+    fetchApiProducts({ isBestseller: true, limit: 8 }),
     fetchApiBrands({ marquee: true }),
     fetchApiServices(),
     fetchApiSection<Stat[]>("/home/stats"),
@@ -30,7 +37,10 @@ export default async function Page() {
   return (
     <HomePageClient
       apiCategories={apiCategories}
-      apiProducts={apiProducts}
+      apiFeaturedProducts={apiFeaturedProducts}
+      apiTrendingProducts={apiTrendingProducts}
+      apiNewArrivals={apiNewArrivals}
+      apiBestsellerProducts={apiBestsellerProducts}
       apiBrands={apiBrands}
       apiServices={apiServices}
       stats={stats ?? STATS}

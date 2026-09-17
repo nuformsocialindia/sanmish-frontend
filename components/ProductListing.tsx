@@ -338,6 +338,7 @@ export default function ProductListing({
                     type="button"
                     className={`prod-wishlist${wishlisted ? " active" : ""}`}
                     aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
+                    data-tooltip={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
                     aria-pressed={wishlisted}
                     onClick={() =>
                       toggleItem({
@@ -375,7 +376,7 @@ export default function ProductListing({
                     </div>
                     <div className="prod-actions">
                       <Link href={`/products/${slug}`} className="mini-btn o">Details</Link>
-                      <button className="mini-btn g">Get Quote</button>
+                      <Link href={`/contact?productSlug=${encodeURIComponent(slug)}&productName=${encodeURIComponent(p.t)}`} className="mini-btn g">Get Quote</Link>
                     </div>
                   </div>
                 </div>

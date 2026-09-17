@@ -32,11 +32,14 @@ export const auth = {
   loginStart: (email: string) => request<{ ok: true }>("/auth/login/start", { email }),
   loginVerify: (email: string, otp: string) => request<{ user: ApiUser }>("/auth/login/verify", { email, otp }),
   logout: () => request<{ ok: true }>("/auth/logout"),
+  // Unlike signupVerify/loginVerify (which return { user, token }), the
+  // backend's GET /auth/me returns the user object flat — { id, name,
+  // email }, no wrapper.
   me: async (): Promise<ApiUser | null> => {
     const res = await fetch(`${API_URL}/auth/me`, { credentials: "include" });
     if (!res.ok) return null;
     const data = await res.json().catch(() => null);
-    return data?.user ?? null;
+    return data?.id ? (data as ApiUser) : null;
   },
 };
 
@@ -125,6 +128,8 @@ export type MyOrderItem = {
   id: string;
   quantity: number;
   unitPrice: string | number;
+  mrpAtPurchase: string | number | null;
+  gstPercent: string | number | null;
   basePrice: string | number;
   gstAmount: string | number;
   lineTotal: string | number;
@@ -138,6 +143,8 @@ export type MyOrder = {
   subtotal: string | number;
   gstAmount: string | number;
   totalAmount: string | number;
+  placeOfSupply: string | null;
+  gstBreakup: { type?: string; cgst?: string | number; sgst?: string | number; igst?: string | number } | null;
   shippingAddress: { line1?: string; city?: string; state?: string; pincode?: string } | null;
   createdAt: string;
   items: MyOrderItem[];
@@ -159,4 +166,34 @@ async function getRequest<T>(path: string): Promise<T> {
 export const myOrders = {
   list: () => getRequest<MyOrder[]>("/public/account/orders"),
   get: (orderNumber: string) => getRequest<MyOrder>(`/public/account/orders/${encodeURIComponent(orderNumber)}`),
+};
+
+export type ReturnRequestType = "RETURN" | "EXCHANGE";
+export type ReturnRequestStatus = "REQUESTED" | "APPROVED" | "REJECTED" | "COMPLETED";
+
+export type CreateReturnRequestPayload = {
+  orderNumber: string;
+  type: ReturnRequestType;
+  reason: string;
+  items: { orderItemId: string; quantity: number }[];
+};
+
+export type MyReturnRequest = {
+  id: string;
+  type: ReturnRequestType;
+  status: ReturnRequestStatus;
+  reason: string;
+  adminNote: string | null;
+  createdAt: string;
+  order?: { orderNumber: string };
+  items: { id: string; quantity: number; orderItem: { product: { title: string } } }[];
+};
+
+// Buyer return/exchange requests (docs/public-api.md: POST/GET
+// /public/account/returns). Requires the buyer session cookie; only allowed
+// once the order has been delivered — the backend enforces this, not the UI.
+export const returns = {
+  create: (payload: CreateReturnRequestPayload) => request<MyReturnRequest>("/public/account/returns", payload),
+  list: (orderNumber?: string) =>
+    getRequest<MyReturnRequest[]>(`/public/account/returns${orderNumber ? `?orderNumber=${encodeURIComponent(orderNumber)}` : ""}`),
 };

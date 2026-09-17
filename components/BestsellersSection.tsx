@@ -1,11 +1,19 @@
 "use client";
 import { useRef } from "react";
-import { BESTSELLERS } from "@/lib/data";
+import Link from "next/link";
+import { normalizeApiProducts } from "@/components/ProductSections";
+import type { ApiProductSummary } from "@/lib/publicApi";
 
-const starSvg = `<svg viewBox="0 0 24 24" fill="currentColor" width="11" height="11"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>`;
-
-export default function BestsellersSection() {
+export default function BestsellersSection({
+  apiBestsellerProducts,
+}: {
+  apiBestsellerProducts: ApiProductSummary[];
+}) {
   const railRef = useRef<HTMLDivElement>(null);
+  // Strictly Product.isBestseller ("Show in Bestseller rail") — no fallback.
+  const items = normalizeApiProducts(apiBestsellerProducts).slice(0, 8);
+
+  if (items.length === 0) return null;
 
   function scroll(dir: "prev" | "next") {
     railRef.current?.scrollBy({ left: dir === "next" ? 504 : -504, behavior: "smooth" });
@@ -27,20 +35,22 @@ export default function BestsellersSection() {
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
           </button>
           <div className="rail" ref={railRef}>
-            {BESTSELLERS.map((item, i) => (
-              <div className="bs-card" key={i}>
+            {items.map((item) => (
+              <Link href={`/products/${item.slug}`} className="bs-card" key={item.key}>
                 <div className="bs-thumb">
-                  <span className="bs-rate" dangerouslySetInnerHTML={{ __html: `${starSvg}${item.r}` }} />
-                  <span dangerouslySetInnerHTML={{ __html: item.ic }} />
+                  <span dangerouslySetInnerHTML={{ __html: item.icon }} />
                 </div>
-                <h4>{item.t}</h4>
+                <h4>{item.title}</h4>
                 <div className="bs-price">
-                  <b>{item.p}</b>
-                  <s>{item.s}</s>
-                  <span className="save">{item.off}</span>
+                  <b>{item.priceLabel}</b>
+                  {item.mrp != null && item.priceValue != null && item.mrp > item.priceValue && (
+                    <s>{"₹ " + item.mrp.toLocaleString("en-IN")}</s>
+                  )}
+                  {item.discountPercent != null && item.discountPercent > 0 && (
+                    <span className="save">{Math.round(item.discountPercent)}% off</span>
+                  )}
                 </div>
-                <div className="bs-reviews">{item.rv}</div>
-              </div>
+              </Link>
             ))}
           </div>
           <button className="rail-btn next" onClick={() => scroll("next")} aria-label="Scroll right">

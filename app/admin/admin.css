@@ -361,12 +361,11 @@
    detail view gets a near-full-viewport page instead of the narrow tabbed
    drawer used elsewhere — everything on one scrollable page, no tabs. */
 .adm-fullpage-backdrop {
-  position: fixed; inset: 0; z-index: 70; display: flex; align-items: center; justify-content: center;
-  padding: 3vh 2vw; background: color-mix(in srgb, var(--color-neutral-900) 40%, transparent);
+  position: fixed; inset: 0; z-index: 70; background: var(--color-bg);
 }
 .adm-fullpage-panel {
-  width: 100%; height: 100%; max-width: 1440px; display: flex; flex-direction: column; overflow: hidden;
-  border-radius: var(--radius-lg); background: var(--color-bg); box-shadow: var(--shadow-lg);
+  width: 100vw; height: 100vh; display: flex; flex-direction: column; overflow: hidden;
+  background: var(--color-bg);
 }
 .adm-fullpage-head {
   padding: 22px 40px; border-bottom: 1px solid var(--color-divider); background: var(--color-surface);
@@ -382,6 +381,22 @@
 .adm-fullpage-main, .adm-fullpage-side { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
 .adm-fullpage-card { padding: 22px 26px; border-radius: var(--radius-lg); background: var(--color-surface); }
 .adm-fullpage-card-title { font-size: 15px; font-weight: 700; color: var(--color-text); margin-bottom: 16px; }
+
+/* Itemized price summary (Subtotal / GST / Total, each its own row) */
+.adm-price-rows { display: flex; flex-direction: column; }
+.adm-price-row { display: flex; justify-content: space-between; align-items: baseline; padding: 9px 0; border-bottom: 1px solid var(--color-divider); font-size: 14px; }
+.adm-price-row:last-child { border-bottom: none; padding-top: 13px; font-size: 15.5px; font-weight: 700; color: var(--color-text); }
+
+/* Order items — a long cart shouldn't blow up the whole page, so the list
+   scrolls inside a capped-height area instead of pushing everything below
+   it further down. */
+.adm-order-items-scroll { max-height: 480px; overflow-y: auto; padding-right: 6px; margin-right: -6px; }
+.adm-order-item-card { display: flex; gap: 14px; padding: 18px 0; }
+.adm-order-item-card:first-child { padding-top: 4px; }
+.adm-order-item-card:not(:first-child) { border-top: 1px solid var(--color-divider); }
+.adm-order-item-thumb { width: 56px; height: 56px; border-radius: var(--radius-md); overflow: hidden; background: var(--color-neutral-200); flex-shrink: 0; display: grid; place-items: center; color: var(--color-neutral-500); }
+.adm-order-item-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.adm-order-item-body { flex: 1; min-width: 0; }
 
 /* ══════════════════ Detail drawer ══════════════════ */
 .adm-drawer-backdrop {
@@ -404,7 +419,14 @@
 }
 .adm-drawer-tabs button.active { background: var(--color-accent-200); color: var(--color-accent-800); font-weight: 700; }
 .adm-drawer-body { padding: 26px 32px 32px; overflow-y: auto; display: flex; flex-direction: column; gap: 26px; flex: 1; }
-.adm-field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+/* Spreadsheet-style gridlines — every label/value cell gets a ruled border,
+   like Excel, so a long list of fields stays easy to scan row by row. */
+.adm-field-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+  border: 1px solid var(--color-divider); border-radius: var(--radius-md); overflow: hidden;
+}
+.adm-field-item { padding: 10px 14px; border-bottom: 1px solid var(--color-divider); }
+.adm-field-item:nth-child(odd) { border-right: 1px solid var(--color-divider); }
 .adm-field-item-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--color-text); display: block; margin-bottom: 4px; }
 .adm-field-item-value { font-size: 14.5px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .adm-micro-btn { padding: 4px 12px; font-size: 12px; border-radius: 999px; border: 1px solid var(--color-divider); background: none; cursor: pointer; color: var(--color-accent); font-family: var(--font-body); }

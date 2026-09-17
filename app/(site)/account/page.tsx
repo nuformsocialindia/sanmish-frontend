@@ -7,7 +7,7 @@ import { useAddresses } from "@/lib/address-context";
 import { useWishlist } from "@/lib/wishlist-context";
 import { useCart } from "@/lib/cart-context";
 
-const inr = (n: number | string) => "₹ " + Number(n).toLocaleString("en-IN");
+const inr = (n: number | string) => "₹ " + Math.round(Number(n)).toLocaleString("en-IN");
 
 export default function AccountDashboardPage() {
   const { user } = useAuth();

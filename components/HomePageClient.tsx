@@ -30,7 +30,10 @@ type Testimonial = { q: string; n: string; r: string; a: string };
 
 export default function HomePageClient({
   apiCategories,
-  apiProducts,
+  apiFeaturedProducts,
+  apiTrendingProducts,
+  apiNewArrivals,
+  apiBestsellerProducts,
   apiBrands,
   apiServices,
   stats,
@@ -41,7 +44,10 @@ export default function HomePageClient({
   testimonials,
 }: {
   apiCategories: ApiCategory[];
-  apiProducts: ApiProductSummary[];
+  apiFeaturedProducts: ApiProductSummary[];
+  apiTrendingProducts: ApiProductSummary[];
+  apiNewArrivals: ApiProductSummary[];
+  apiBestsellerProducts: ApiProductSummary[];
   apiBrands: ApiBrand[];
   apiServices: ApiService[];
   stats: Stat[];
@@ -55,13 +61,13 @@ export default function HomePageClient({
 
   return (
     <>
-      <SearchBand />
+      <SearchBand apiCategories={apiCategories} />
       <HeroSection />
       <FeatureHighlights />
       <CategoryGrid apiCategories={apiCategories} />
-      <FeaturedProducts apiProducts={apiProducts} />
-      <ShowcaseSection />
-      <BestsellersSection />
+      <FeaturedProducts apiFeaturedProducts={apiFeaturedProducts} />
+      <ShowcaseSection apiNewArrivals={apiNewArrivals} apiTrendingProducts={apiTrendingProducts} />
+      <BestsellersSection apiBestsellerProducts={apiBestsellerProducts} />
       <CitiesSection />
       <WhySection items={whyItems} />
       <ServicesSection apiServices={apiServices} />

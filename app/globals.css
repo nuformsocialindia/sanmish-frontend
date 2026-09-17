@@ -881,6 +881,33 @@ section[id] { scroll-margin-top: 76px; }
 .prod-wishlist:hover svg { color: #e0455a; }
 .prod-wishlist.active svg { color: #e0455a; }
 
+/* Custom tooltip (native title="" is too slow/inconsistent to show) */
+.prod-wishlist::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: var(--ink, #1F2937);
+  color: #fff;
+  font-size: 11.5px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  padding: 6px 10px;
+  border-radius: 6px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-4px);
+  transition: opacity .15s, transform .15s;
+  pointer-events: none;
+  z-index: 3;
+}
+.prod-wishlist:hover::after {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
 .prod-body { padding: 20px; display: flex; flex-direction: column; flex: 1; }
 .prod-body h3 { font-size: 1.02rem; font-weight: 600; margin-bottom: 4px; }
 .prod-cat { font-size: .76rem; color: var(--blue); font-weight: 600; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 12px; }
@@ -1478,6 +1505,12 @@ section[id] { scroll-margin-top: 76px; }
 }
 
 .showcase-col { display: flex; flex-direction: column; }
+.showcase-col:not(.deals) {
+  background: var(--gray);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 20px;
+}
 .mini-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 
 .mini-prod {
@@ -1490,6 +1523,7 @@ section[id] { scroll-margin-top: 76px; }
   cursor: pointer;
   display: flex;
   flex-direction: column;
+  height: 100%;
 }
 
 .mini-prod:hover { transform: translateY(-6px); box-shadow: var(--shadow); }
@@ -1506,9 +1540,12 @@ section[id] { scroll-margin-top: 76px; }
 
 .mini-thumb svg { width: 64%; height: 64%; transition: transform .45s var(--ease); }
 .mini-prod:hover .mini-thumb svg { transform: scale(1.08); }
-.mini-prod h4 { font-size: .9rem; font-weight: 600; font-family: 'Poppins'; margin-bottom: 5px; line-height: 1.3; }
-.mini-prod .from { font-size: .8rem; color: var(--muted); margin-top: auto; }
-.mini-prod .from b { color: var(--ink); font-family: 'Poppins'; }
+.mini-prod h4 {
+  font-size: .9rem; font-weight: 600; font-family: 'Poppins'; margin-bottom: 5px; line-height: 1.3;
+  min-height: calc(1.3em * 2); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.mini-prod .from { font-size: .8rem; color: var(--muted); line-height: 1.3; }
+.mini-prod .from b { color: var(--ink); font-family: 'Poppins'; display: block; white-space: nowrap; }
 
 /* Deal Banner */
 .deal-banner {
@@ -2938,7 +2975,27 @@ input[type=range].f-slider::-webkit-slider-thumb { -webkit-appearance: none; wid
 .order-tracker-step span:last-child { font-size: .76rem; color: var(--muted); text-align: center; }
 .order-tracker-step.done span:last-child { color: var(--ink); font-weight: 600; }
 
-.order-detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 32px; }
+/* Invoice-style items table — plain rows, a solid colored header, like a
+   printed GST invoice, instead of a per-item card grid. */
+.invoice-table-wrap { overflow-x: auto; border-radius: var(--radius-sm); border: 1px solid var(--line); }
+.invoice-table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+.invoice-table th {
+  background: var(--blue); color: #fff; text-align: left; font-weight: 600;
+  padding: 12px 16px; white-space: nowrap;
+}
+.invoice-table th.num, .invoice-table td.num { text-align: right; }
+.invoice-table td { padding: 12px 16px; border-bottom: 1px solid var(--line); }
+.invoice-table tbody tr:last-child td { border-bottom: none; }
+.invoice-table tbody tr:nth-child(even) { background: color-mix(in srgb, var(--gray) 60%, transparent); }
+
+/* Spreadsheet-style gridlines — every label/value cell gets a ruled border,
+   like Excel, so a price/tax breakdown stays easy to scan. */
+.order-detail-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+  border: 1px solid var(--line); border-radius: var(--radius-sm); overflow: hidden;
+}
+.order-detail-grid > div { padding: 10px 14px; border-bottom: 1px solid var(--line); }
+.order-detail-grid > div:nth-child(odd) { border-right: 1px solid var(--line); }
 .order-detail-grid .full { grid-column: 1/-1; }
 .order-detail-grid span { display: block; font-size: .78rem; color: var(--muted); margin-bottom: 4px; }
 .order-detail-grid b { font-size: .92rem; font-weight: 600; }

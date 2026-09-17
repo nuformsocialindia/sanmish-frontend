@@ -1,6 +1,7 @@
 "use client";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { FEATURE_HIGHLIGHTS } from "@/lib/data";
 import { useWishlist } from "@/lib/wishlist-context";
 import { publicFileUrl, type ApiCategory, type ApiProductSummary } from "@/lib/publicApi";
@@ -18,7 +19,7 @@ function normalizeApiCategories(apiCategories: ApiCategory[]) {
   }));
 }
 
-type DisplayProduct = {
+export type DisplayProduct = {
   key: string;
   slug: string;
   title: string;
@@ -26,11 +27,13 @@ type DisplayProduct = {
   seller: string;
   priceLabel: string;
   priceValue: number | null;
+  mrp: number | null;
+  discountPercent: number | null;
   badge: string;
   icon: string;
 };
 
-function normalizeApiProducts(apiProducts: ApiProductSummary[]): DisplayProduct[] {
+export function normalizeApiProducts(apiProducts: ApiProductSummary[]): DisplayProduct[] {
   return apiProducts.map((p) => ({
     key: p.id,
     slug: p.slug,
@@ -39,6 +42,8 @@ function normalizeApiProducts(apiProducts: ApiProductSummary[]): DisplayProduct[
     seller: p.vendor?.businessName ?? "Verified Seller",
     priceLabel: p.quoteOnly || p.sellingPrice == null ? "On Request" : "₹ " + p.sellingPrice.toLocaleString("en-IN"),
     priceValue: p.sellingPrice,
+    mrp: p.mrp,
+    discountPercent: p.discountPercent,
     badge: p.isFeatured ? "Featured" : p.isTrending ? "Trending" : "New",
     icon: publicFileUrl(p.images?.[0]?.url)
       ? `<img src="${publicFileUrl(p.images?.[0]?.url)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:inherit" />`
@@ -46,47 +51,82 @@ function normalizeApiProducts(apiProducts: ApiProductSummary[]): DisplayProduct[
   }));
 }
 
-export function SearchBand() {
-  const handleTagClick = (text: string) => {
-    const el = document.getElementById("mainsearch") as HTMLInputElement | null;
-    if (el) {
-      el.value = text;
-      el.focus();
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
+export function SearchBand({ apiCategories }: { apiCategories: ApiCategory[] }) {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [term, setTerm] = useState("");
+  const [category, setCategory] = useState<string | null>(null);
+
+  const goToProducts = (overrideTerm?: string) => {
+    const params = new URLSearchParams();
+    const q = overrideTerm ?? term;
+    if (q.trim()) params.set("search", q.trim());
+    if (category) params.set("category", category);
+    router.push(`/products${params.toString() ? `?${params}` : ""}`);
   };
 
   return (
     <section className="searchband">
       <div className="wrap">
-        <div className="search-card reveal">
-          <button className="search-cat">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M4 6h16M4 12h16M4 18h10" />
-            </svg>
-            All Categories
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="m6 9 6 6 6-6" />
-            </svg>
-          </button>
+        <form
+          className="search-card reveal"
+          onSubmit={(e) => {
+            e.preventDefault();
+            goToProducts();
+          }}
+        >
+          <div className="search-cat-wrap">
+            <button type="button" className="search-cat" onClick={() => setOpen((v) => !v)}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 6h16M4 12h16M4 18h10" />
+              </svg>
+              {category ?? "All Categories"}
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="m6 9 6 6 6-6" />
+              </svg>
+            </button>
+            {open && (
+              <div className="search-cat-menu">
+                <button type="button" className={category === null ? "active" : ""} onClick={() => { setCategory(null); setOpen(false); }}>
+                  All Categories
+                </button>
+                {apiCategories.map((c) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    className={category === c.name ? "active" : ""}
+                    onClick={() => { setCategory(c.name); setOpen(false); }}
+                  >
+                    {c.name}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
           <div className="search-sep" />
           <div className="search-input">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
             </svg>
-            <input id="mainsearch" type="text" placeholder="Search equipment — compressors, dispensers, cascade systems…" />
+            <input
+              id="mainsearch"
+              type="text"
+              placeholder="Search equipment — compressors, dispensers, cascade systems…"
+              value={term}
+              onChange={(e) => setTerm(e.target.value)}
+            />
           </div>
-          <button className="btn btn-primary">
+          <button type="submit" className="btn btn-primary">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
             </svg>
             Search
           </button>
-        </div>
+        </form>
         <div className="quick-tags reveal d1">
           <span className="lbl">Popular:</span>
           {["Compressors", "Dispensers", "Cascade", "CBG", "Biogas", "Valves"].map((t) => (
-            <span key={t} className="tag" onClick={() => handleTagClick(t)}>{t}</span>
+            <span key={t} className="tag" onClick={() => { setTerm(t); goToProducts(t); }}>{t}</span>
           ))}
         </div>
       </div>
@@ -167,13 +207,19 @@ export function CategoryGrid({ apiCategories = [] }: { apiCategories?: ApiCatego
   );
 }
 
-export function FeaturedProducts({ apiProducts = [] }: { apiProducts?: ApiProductSummary[] }) {
+export function FeaturedProducts({
+  apiFeaturedProducts = [],
+}: {
+  apiFeaturedProducts?: ApiProductSummary[];
+}) {
   const delays = ["", " d1", " d2", " d3", "", " d1", " d2", " d3"];
   const { isWishlisted, toggleItem } = useWishlist();
-  // This is a homepage teaser, not the catalogue — cap it to a clean 4x2 grid
-  // and send anyone who wants more to the full /products listing via the
-  // "View all products" link below.
-  const products = useMemo(() => normalizeApiProducts(apiProducts).slice(0, 8), [apiProducts]);
+  // Strictly admin-flag-driven (Product.isFeatured, "Show in Featured rail"
+  // in the admin form) — no fallback to "whatever's newest" when nothing's
+  // flagged. A silent fallback made unchecking a product's flag look like
+  // it did nothing, since the section kept showing unrelated products.
+  // Section just doesn't render until an admin actually flags something.
+  const products = useMemo(() => normalizeApiProducts(apiFeaturedProducts).slice(0, 8), [apiFeaturedProducts]);
 
   if (products.length === 0) return null;
 
@@ -198,6 +244,7 @@ export function FeaturedProducts({ apiProducts = [] }: { apiProducts?: ApiProduc
                   type="button"
                   className={`prod-wishlist${wishlisted ? " active" : ""}`}
                   aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
+                  data-tooltip={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
                   aria-pressed={wishlisted}
                   onClick={() =>
                     toggleItem({
@@ -235,7 +282,7 @@ export function FeaturedProducts({ apiProducts = [] }: { apiProducts?: ApiProduc
                   </div>
                   <div className="prod-actions">
                     <Link href={`/products/${p.slug}`} className="mini-btn o">Details</Link>
-                    <button className="mini-btn g">Get Quote</button>
+                    <Link href={`/contact?productSlug=${encodeURIComponent(p.slug)}&productName=${encodeURIComponent(p.title)}`} className="mini-btn g">Get Quote</Link>
                   </div>
                 </div>
               </div>

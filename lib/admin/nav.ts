@@ -1,7 +1,7 @@
 import type { AdminRole } from "@/lib/admin/api";
 
 export type AdminModule =
-  | "dashboard" | "users" | "vendors" | "categories" | "products" | "orders"
+  | "dashboard" | "users" | "vendors" | "categories" | "products" | "orders" | "returns"
   | "payments" | "logistics" | "rfq" | "reports" | "notifications" | "admins" | "settings"
   | "brands" | "merchandising" | "coupons" | "reviews" | "services" | "pages" | "site-content"
   | "enquiries" | "tax" | "shipping";
@@ -12,10 +12,10 @@ export type AdminModule =
 // backend endpoints yet) — see AGENTS.md note in each page file.
 export const ROLE_MODULES: Record<AdminRole, AdminModule[] | null> = {
   SUPER_ADMIN: null, // null = everything
-  OPERATIONS_ADMIN: ["dashboard", "users", "orders", "rfq", "enquiries", "services", "pages", "site-content", "reports", "notifications"],
+  OPERATIONS_ADMIN: ["dashboard", "users", "orders", "returns", "rfq", "enquiries", "services", "pages", "site-content", "reports", "notifications"],
   FINANCE_ADMIN: ["dashboard", "payments", "tax", "reports"],
   PRODUCT_ADMIN: ["dashboard", "categories", "products", "brands", "merchandising", "coupons", "reviews", "tax", "reports"],
-  LOGISTICS_ADMIN: ["dashboard", "logistics", "shipping", "orders", "reports"],
+  LOGISTICS_ADMIN: ["dashboard", "logistics", "shipping", "orders", "returns", "reports"],
   VENDOR_MANAGER: ["dashboard", "vendors", "reports"],
 };
 
@@ -37,6 +37,7 @@ const ICONS: Record<AdminModule, string> = {
   categories: `<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>`,
   products: `<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0"/><rect x="3" y="7" width="18" height="14" rx="2"/><path d="M3 11h18"/>`,
   orders: `<path d="M6 2h12l1 5H5z"/><path d="M5 7h14v13H5z"/><path d="M9 11h6"/>`,
+  returns: `<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/>`,
   rfq: `<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 15l2 2 4-4"/>`,
   users: `<circle cx="9" cy="8" r="4"/><path d="M2 21v-1a7 7 0 0 1 14 0v1"/><circle cx="18" cy="8" r="3"/><path d="M22 21v-1a6 6 0 0 0-5-5.9"/>`,
   vendors: `<path d="M3 21V8l9-5 9 5v13"/><path d="M9 21v-6h6v6"/>`,
@@ -58,7 +59,7 @@ const ICONS: Record<AdminModule, string> = {
 
 const LABELS: Record<AdminModule, string> = {
   dashboard: "Dashboard", reports: "Reports & analytics", notifications: "Notifications",
-  categories: "Categories", products: "Products", orders: "Orders", rfq: "RFQ / Enquiries",
+  categories: "Categories", products: "Products", orders: "Orders", returns: "Returns & exchanges", rfq: "RFQ / Enquiries",
   users: "Customers", vendors: "Vendors", admins: "Admin management", payments: "Payments",
   logistics: "Logistics", settings: "Settings",
   brands: "Brands & OEMs", merchandising: "Merchandising", coupons: "Deals & coupons",
@@ -68,7 +69,7 @@ const LABELS: Record<AdminModule, string> = {
 
 const HREFS: Record<AdminModule, string> = {
   dashboard: "/admin", reports: "/admin/reports", notifications: "/admin/notifications",
-  categories: "/admin/categories", products: "/admin/products", orders: "/admin/orders",
+  categories: "/admin/categories", products: "/admin/products", orders: "/admin/orders", returns: "/admin/returns",
   rfq: "/admin/rfq", users: "/admin/users", vendors: "/admin/vendors", admins: "/admin/admins",
   payments: "/admin/payments", logistics: "/admin/logistics", settings: "/admin/settings",
   brands: "/admin/brands", merchandising: "/admin/merchandising", coupons: "/admin/coupons",
@@ -80,7 +81,7 @@ const SECTIONS: { label: string; modules: AdminModule[] }[] = [
   { label: "Overview", modules: ["dashboard", "reports", "notifications"] },
   { label: "Catalogue", modules: ["categories", "products", "brands"] },
   { label: "Storefront", modules: ["merchandising", "coupons", "reviews", "services", "pages", "site-content"] },
-  { label: "Demand", modules: ["orders", "rfq", "enquiries"] },
+  { label: "Demand", modules: ["orders", "returns", "rfq", "enquiries"] },
   { label: "People", modules: ["users", "vendors", "admins"] },
   { label: "Money & ops", modules: ["payments", "tax", "logistics", "shipping"] },
   { label: "Account", modules: ["settings"] },
@@ -102,6 +103,7 @@ export const PAGE_TITLES: Record<AdminModule, { title: string; subtitle: string 
   categories: { title: "Category management", subtitle: "Hierarchy, priority and SEO" },
   products: { title: "Product management", subtitle: "Listings, pricing, stock and approvals" },
   orders: { title: "Order management", subtitle: "Fulfilment, invoices and status" },
+  returns: { title: "Returns & exchanges", subtitle: "Review buyer return/exchange requests and process refunds" },
   payments: { title: "Payment management", subtitle: "Transactions, refunds, settlements, commission" },
   logistics: { title: "Logistics management", subtitle: "Partners, zones, shipments" },
   rfq: { title: "RFQ / Enquiry management", subtitle: "Assign vendors, record quotes, convert to orders" },

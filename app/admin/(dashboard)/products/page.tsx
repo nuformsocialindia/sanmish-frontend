@@ -24,7 +24,7 @@ type Product = Record<string, unknown> & {
   id: string; title?: string; status?: string; isActive?: boolean; stockQty?: number;
   mrp?: number; sellingPrice?: number; gstApplicable?: boolean; gstRate?: number; priceIncludesGst?: boolean;
   basePrice?: number; gstAmount?: number; grandTotal?: number; discountPercent?: number;
-  quoteOnly?: boolean; isFeatured?: boolean; isTrending?: boolean; fuelType?: string;
+  quoteOnly?: boolean; isFeatured?: boolean; isTrending?: boolean; isNewArrival?: boolean; isBestseller?: boolean; fuelType?: string;
   priceSlabs?: Slab[]; minOrderQty?: number; qtyStep?: number; maxOrderQty?: number; slabTailRequiresQuote?: boolean;
   trustBadges?: { label: string; icon: string }[] | null;
   category?: { id: string; name: string } | null;
@@ -84,7 +84,7 @@ const emptyForm = () => ({
   minOrderQty: "1", qtyStep: "1", maxOrderQty: "", slabTailRequiresQuote: false, priceSlabs: [] as Slab[],
   leadTimeText: "", freeShippingEligible: false, freeShippingNote: "", shippedBy: "", codAvailable: false,
   returnWindowDays: "0", grossWeightKg: "", dimL: "", dimW: "", dimH: "", warrantyText: "",
-  installationOffered: false, amcAvailable: false, badges: "", ribbonTextOverride: "", isFeatured: false, isTrending: false,
+  installationOffered: false, amcAvailable: false, badges: "", ribbonTextOverride: "", isFeatured: false, isTrending: false, isNewArrival: false, isBestseller: false,
   metaTitle: "", metaDescription: "", metaKeywords: "", canonicalUrl: "",
   trustBadges: null as { label: string; icon: string }[] | null,
 });
@@ -201,7 +201,7 @@ export default function AdminProductsPage() {
       dimL: String((p.dimensionsCm as Record<string, unknown> | undefined)?.l ?? ""), dimW: String((p.dimensionsCm as Record<string, unknown> | undefined)?.w ?? ""), dimH: String((p.dimensionsCm as Record<string, unknown> | undefined)?.h ?? ""),
       warrantyText: String(p.warrantyText ?? ""), installationOffered: Boolean(p.installationOffered), amcAvailable: Boolean(p.amcAvailable),
       badges: Array.isArray(p.badges) ? (p.badges as string[]).join(", ") : "", ribbonTextOverride: String(p.ribbonTextOverride ?? ""),
-      isFeatured: Boolean(p.isFeatured), isTrending: Boolean(p.isTrending),
+      isFeatured: Boolean(p.isFeatured), isTrending: Boolean(p.isTrending), isNewArrival: Boolean(p.isNewArrival), isBestseller: Boolean(p.isBestseller),
       metaTitle: String(p.metaTitle ?? ""), metaDescription: String(p.metaDescription ?? ""), metaKeywords: String(p.metaKeywords ?? ""), canonicalUrl: String(p.canonicalUrl ?? ""),
       trustBadges: Array.isArray(p.trustBadges) ? (p.trustBadges as { label: string; icon: string }[]) : null,
     });
@@ -267,7 +267,7 @@ export default function AdminProductsPage() {
     dimensionsCm: (form.dimL || form.dimW || form.dimH) ? { l: Number(form.dimL) || 0, w: Number(form.dimW) || 0, h: Number(form.dimH) || 0 } : undefined,
     warrantyText: form.warrantyText || undefined, installationOffered: form.installationOffered, amcAvailable: form.amcAvailable,
     badges: form.badges.trim() ? form.badges.split(",").map((b) => b.trim()).filter(Boolean) : undefined,
-    ribbonTextOverride: form.ribbonTextOverride || undefined, isFeatured: form.isFeatured, isTrending: form.isTrending,
+    ribbonTextOverride: form.ribbonTextOverride || undefined, isFeatured: form.isFeatured, isTrending: form.isTrending, isNewArrival: form.isNewArrival, isBestseller: form.isBestseller,
     metaTitle: form.metaTitle || undefined, metaDescription: form.metaDescription || undefined,
     metaKeywords: form.metaKeywords || undefined, canonicalUrl: form.canonicalUrl || undefined,
     // Sent as an explicit value (never `undefined`) so choosing "use default"
@@ -574,9 +574,12 @@ export default function AdminProductsPage() {
               <h3 className="card-title" style={{ fontSize: 20 }}>Badges and placement</h3>
               <div className="field full">
                 <label>Ribbon badges</label>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                <p style={{ fontSize: 12.5, color: "var(--color-neutral-600)", marginTop: -4, marginBottom: 8 }}>
+                  Cosmetic label shown on the product card corner only — does not put the product on any homepage rail. For that, use "Homepage rail placement" below.
+                </p>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: 8 }}>
                   {BADGE_OPTIONS.map((b) => (
-                    <label key={b} className="check" style={{ padding: "8px 14px", borderRadius: 999, background: "var(--color-neutral-200)" }}>
+                    <label key={b} className="check" style={{ padding: "8px 14px", borderRadius: 999, background: "var(--color-neutral-200)", justifyContent: "flex-start" }}>
                       <input type="checkbox" checked={activeBadges.includes(b)} onChange={() => toggleBadge(b)} /> {b}
                     </label>
                   ))}
@@ -637,12 +640,21 @@ export default function AdminProductsPage() {
               </div>
               <div className="field full">
                 <label>Homepage rail placement</label>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                  <label className="check" style={{ padding: "8px 14px", borderRadius: 999, background: "var(--color-neutral-200)" }}>
+                <p style={{ fontSize: 12.5, color: "var(--color-neutral-600)", marginTop: -4, marginBottom: 8 }}>
+                  This is what actually controls the homepage's Featured Equipment, Best Selling, Bestsellers and New Arrivals sections — unrelated to the ribbon badges above.
+                </p>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 8 }}>
+                  <label className="check" style={{ padding: "8px 14px", borderRadius: 999, background: "var(--color-neutral-200)", justifyContent: "flex-start" }}>
                     <input type="checkbox" checked={form.isFeatured} onChange={(e) => setForm({ ...form, isFeatured: e.target.checked })} /> Show in Featured rail
                   </label>
-                  <label className="check" style={{ padding: "8px 14px", borderRadius: 999, background: "var(--color-neutral-200)" }}>
+                  <label className="check" style={{ padding: "8px 14px", borderRadius: 999, background: "var(--color-neutral-200)", justifyContent: "flex-start" }}>
                     <input type="checkbox" checked={form.isTrending} onChange={(e) => setForm({ ...form, isTrending: e.target.checked })} /> Show in Trending rail
+                  </label>
+                  <label className="check" style={{ padding: "8px 14px", borderRadius: 999, background: "var(--color-neutral-200)", justifyContent: "flex-start" }}>
+                    <input type="checkbox" checked={form.isNewArrival} onChange={(e) => setForm({ ...form, isNewArrival: e.target.checked })} /> Show in New Arrivals rail
+                  </label>
+                  <label className="check" style={{ padding: "8px 14px", borderRadius: 999, background: "var(--color-neutral-200)", justifyContent: "flex-start" }}>
+                    <input type="checkbox" checked={form.isBestseller} onChange={(e) => setForm({ ...form, isBestseller: e.target.checked })} /> Show in Bestseller rail
                   </label>
                 </div>
               </div>

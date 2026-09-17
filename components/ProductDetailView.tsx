@@ -228,6 +228,7 @@ export default function ProductDetailView({
                   type="button"
                   className={`prod-wishlist${wishlisted ? " active" : ""}`}
                   aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
+                  data-tooltip={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
                   aria-pressed={wishlisted}
                   onClick={() => toggleItem(product)}
                 >

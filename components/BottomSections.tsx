@@ -1,4 +1,6 @@
 // CTASection — matches original exactly
+import Link from "next/link";
+
 export function CTASection() {
   return (
     <section className="cta" id="cta">
@@ -12,21 +14,21 @@ export function CTASection() {
             infrastructure — whether you&rsquo;re sourcing equipment or selling it.
           </p>
           <div className="cta-btns">
-            <a href="#" className="btn btn-white">
+            <Link href="/become-seller" className="btn btn-white">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
                 <circle cx="9" cy="7" r="4" />
                 <path d="M19 8v6M22 11h-6" />
               </svg>
               Become Seller
-            </a>
-            <a href="#" className="btn btn-light">
+            </Link>
+            <Link href="/contact" className="btn btn-light">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                 <path d="M14 2v6h6" />
               </svg>
               Request Quote
-            </a>
+            </Link>
           </div>
         </div>
       </div>

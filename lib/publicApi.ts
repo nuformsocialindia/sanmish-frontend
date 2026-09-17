@@ -97,6 +97,8 @@ export type ApiProductSummary = {
   ribbonTextOverride: string | null;
   isFeatured: boolean;
   isTrending: boolean;
+  isNewArrival: boolean;
+  isBestseller: boolean;
   category: { id: string; name: string; slug: string };
   brand: { id: string; name: string; slug: string } | null;
   vendor: ApiProductVendor;
@@ -198,6 +200,10 @@ export async function fetchApiProducts(
     search?: string;
     minPrice?: number;
     maxPrice?: number;
+    isFeatured?: boolean;
+    isTrending?: boolean;
+    isNewArrival?: boolean;
+    isBestseller?: boolean;
     sort?: string;
     page?: number;
     limit?: number;

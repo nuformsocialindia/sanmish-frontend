@@ -136,7 +136,7 @@ export default function CheckoutPage() {
                 ) : (
                   <>Your reference number is <b>{rfqNumbers[0] ?? refId}</b>.</>
                 )}{" "}
-                {rfqNumbers[0]?.startsWith("ORD-")
+                {orderNumber
                   ? "We've confirmed your order — our team will follow up on delivery and payment shortly."
                   : "Our team will review your requirement and follow up with formal pricing and lead times within one business day."}
               </p>
