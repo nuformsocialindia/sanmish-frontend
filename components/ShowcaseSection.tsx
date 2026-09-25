@@ -3,7 +3,53 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { DEALS } from "@/lib/data";
 import { normalizeApiProducts } from "@/components/ProductSections";
+import { useWishlist } from "@/lib/wishlist-context";
 import type { ApiProductSummary } from "@/lib/publicApi";
+import type { DisplayProduct } from "@/components/ProductSections";
+
+function MiniProductGrid({ items }: { items: DisplayProduct[] }) {
+  const { isWishlisted, toggleItem } = useWishlist();
+  return (
+    <div className="mini-grid">
+      {items.map((item) => {
+        const wishlisted = isWishlisted(item.slug);
+        return (
+          <div className="mini-prod" key={item.key}>
+            <Link href={`/products/${item.slug}`} className="prod-card-link" aria-hidden="true" tabIndex={-1} />
+            <div className="mini-thumb">
+              <span dangerouslySetInnerHTML={{ __html: item.icon }} />
+              <button
+                type="button"
+                className={`prod-wishlist${wishlisted ? " active" : ""}`}
+                aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
+                data-tooltip={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
+                aria-pressed={wishlisted}
+                onClick={() =>
+                  toggleItem({
+                    slug: item.slug,
+                    title: item.title,
+                    category: item.category,
+                    seller: item.seller,
+                    priceLabel: item.priceLabel,
+                    priceValue: item.priceValue,
+                    badge: item.badge,
+                    icon: item.icon,
+                  })
+                }
+              >
+                <svg viewBox="0 0 24 24" fill={wishlisted ? "currentColor" : "#fff"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                </svg>
+              </button>
+            </div>
+            <h4>{item.title}</h4>
+            <div className="from">Starting from <b>{item.priceLabel}</b></div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 export default function ShowcaseSection({
   apiNewArrivals,
@@ -27,9 +73,9 @@ export default function ShowcaseSection({
   // unchecking a product actually removes it instead of a stand-in list
   // quietly taking its place.
   const newArrivals = normalizeApiProducts(apiNewArrivals).slice(0, 4);
-  const bestSelling = normalizeApiProducts(apiTrendingProducts).slice(0, 4);
+  const hotSelling = normalizeApiProducts(apiTrendingProducts).slice(0, 4);
 
-  if (newArrivals.length === 0 && bestSelling.length === 0) return null;
+  if (newArrivals.length === 0 && hotSelling.length === 0) return null;
 
   return (
     <section className="section" style={{ paddingTop: 20 }}>
@@ -42,33 +88,17 @@ export default function ShowcaseSection({
                 <h3>New Arrivals</h3>
                 <Link href="/products">View all <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></Link>
               </div>
-              <div className="mini-grid">
-                {newArrivals.map((item) => (
-                  <Link href={`/products/${item.slug}`} className="mini-prod" key={item.key}>
-                    <div className="mini-thumb" dangerouslySetInnerHTML={{ __html: item.icon }} />
-                    <h4>{item.title}</h4>
-                    <div className="from">Starting from <b>{item.priceLabel}</b></div>
-                  </Link>
-                ))}
-              </div>
+              <MiniProductGrid items={newArrivals} />
             </div>
           )}
 
-          {bestSelling.length > 0 && (
+          {hotSelling.length > 0 && (
             <div className="showcase-col reveal d1">
               <div className="col-head">
-                <h3>Best Selling</h3>
+                <h3>Hot Selling</h3>
                 <Link href="/products">View all <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></Link>
               </div>
-              <div className="mini-grid">
-                {bestSelling.map((item) => (
-                  <Link href={`/products/${item.slug}`} className="mini-prod" key={item.key}>
-                    <div className="mini-thumb" dangerouslySetInnerHTML={{ __html: item.icon }} />
-                    <h4>{item.title}</h4>
-                    <div className="from">Starting from <b>{item.priceLabel}</b></div>
-                  </Link>
-                ))}
-              </div>
+              <MiniProductGrid items={hotSelling} />
             </div>
           )}
 

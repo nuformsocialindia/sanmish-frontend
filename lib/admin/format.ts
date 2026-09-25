@@ -26,7 +26,7 @@ export function displayStatus(status: string | null | undefined): string {
 
 export function money(value: number | string | null | undefined): string {
   const n = Number(value ?? 0);
-  return "₹ " + Math.round(n).toLocaleString("en-IN");
+  return "₹" + Math.round(n).toLocaleString("en-IN");
 }
 
 export function formatDate(value: unknown): string {

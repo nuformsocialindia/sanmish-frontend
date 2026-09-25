@@ -16,7 +16,7 @@ export default async function Page() {
     stats, whyItems, brands, howItWorks, buyersLove, testimonials,
   ] = await Promise.all([
     fetchApiCategories({ flat: true, limit: 50 }),
-    // Featured Equipment / Best Selling / New Arrivals / Bestsellers rails
+    // Featured Equipment / Hot Selling / New Arrivals / Bestsellers rails
     // reflect the admin's own isFeatured/isTrending/isNewArrival/isBestseller
     // flags — not just whatever happened to load first — so an admin
     // flipping a flag actually changes what shows up here.

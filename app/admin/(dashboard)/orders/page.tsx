@@ -6,7 +6,7 @@ import { useQueryState } from "@/lib/admin/useQueryState";
 import { useAdminToast } from "@/components/admin/Toast";
 import { TableSkeleton, EmptyState, ErrorBanner } from "@/components/admin/ListStates";
 import StatusTag from "@/components/admin/StatusTag";
-import { FieldGrid, Field, NotesThread, Timeline } from "@/components/admin/Drawer";
+import { NotesThread, Timeline } from "@/components/admin/Drawer";
 import Icon from "@/components/admin/Icon";
 
 type Address = { line1?: string; line2?: string; city?: string; state?: string; pincode?: string };
@@ -127,7 +127,7 @@ export default function AdminOrdersPage() {
           <span className="adm-toolbar-spacer" />
           <select className="input" style={{ width: "auto" }} onChange={(e) => { if (e.target.value) runAction(() => ordersApi.bulkStatus(selected, e.target.value), "Order status updated."); }}>
             <option value="">Update status…</option>
-            {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{s}</option>)}
+            {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{s.toUpperCase()}</option>)}
           </select>
           <button type="button" className="btn btn-ghost btn-sm" onClick={() => setSelected([])}>Clear</button>
         </div>
@@ -188,10 +188,14 @@ export default function AdminOrdersPage() {
                 </div>
               </div>
               <div className="adm-fullpage-actions">
-                <button type="button" className="btn btn-primary" onClick={() => runAction(() => ordersApi.approve(detail.id), "Order approved.")}>Approve</button>
+                <select className="input adm-status-select" value={nextStatus} onChange={(e) => setNextStatus(e.target.value)}>
+                  {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{s.toUpperCase()}</option>)}
+                </select>
+                <button type="button" className="btn btn-secondary" onClick={() => runAction(() => ordersApi.setStatus(detail.id, nextStatus), "Status updated.")}>Update status</button>
                 <button type="button" className="btn btn-secondary" onClick={() => generateFile(() => ordersApi.invoice(detail.id), "Invoice")}>Generate invoice</button>
                 <button type="button" className="btn btn-secondary" onClick={() => generateFile(() => ordersApi.packingSlip(detail.id), "Packing slip")}>Generate packing slip</button>
-                <button type="button" className="btn btn-ghost" onClick={() => runAction(() => ordersApi.cancel(detail.id), "Order cancelled.")}>Cancel order</button>
+                <button type="button" className="btn btn-secondary" onClick={() => window.print()}>Print</button>
+                <button type="button" className="btn btn-secondary btn-danger" onClick={() => runAction(() => ordersApi.cancel(detail.id), "Order cancelled.")}>Cancel order</button>
                 <button type="button" className="btn btn-icon btn-secondary" onClick={() => setDetail(null)} aria-label="Close">
                   <Icon name="x" size={18} />
                 </button>
@@ -199,105 +203,142 @@ export default function AdminOrdersPage() {
             </div>
 
             <div className="adm-fullpage-body">
-              <div className="adm-fullpage-grid">
-                <div className="adm-fullpage-main">
-                  {(detail.items?.length ?? 0) > 0 && (
+              <div className="adm-fullpage-single">
+                <div className="adm-detail-row-group">
+                <div className="adm-fullpage-card">
+                  <div className="adm-fullpage-card-title">Customer</div>
+                  <div>
+                    <div className="adm-info-row-pair">
+                      <div className="adm-info-row">
+                        <div className="adm-info-icon"><Icon name="user" size={16} /></div>
+                        <div>
+                          <span className="adm-info-label">Name</span>
+                          <div className="adm-info-value">{detail.user?.name ?? "—"}</div>
+                        </div>
+                      </div>
+                      <div className="adm-info-row">
+                        <div className="adm-info-icon"><Icon name="mail" size={16} /></div>
+                        <div>
+                          <span className="adm-info-label">Email</span>
+                          <div className="adm-info-value">{detail.user?.email ?? "—"}</div>
+                        </div>
+                      </div>
+                    </div>
+                    {detail.user?.mobileNumber && (
+                      <div className="adm-info-row">
+                        <div className="adm-info-icon"><Icon name="phone" size={16} /></div>
+                        <div>
+                          <span className="adm-info-label">Mobile</span>
+                          <div className="adm-info-value">{detail.user.mobileNumber}</div>
+                        </div>
+                      </div>
+                    )}
+                    <div className="adm-info-row">
+                      <div className="adm-info-icon"><Icon name="map-pin" size={16} /></div>
+                      <div>
+                        <span className="adm-info-label">Shipping address</span>
+                        <div className="adm-info-value" style={{ fontWeight: 500 }}>{formatAddress(detail.shippingAddress)}</div>
+                      </div>
+                    </div>
+                    <div className="adm-info-row">
+                      <div className="adm-info-icon"><Icon name="map-pin" size={16} /></div>
+                      <div>
+                        <span className="adm-info-label">Billing address</span>
+                        <div className="adm-info-value" style={{ fontWeight: 500 }}>{formatAddress(detail.billingAddress)}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="adm-fullpage-card">
+                  <div className="adm-fullpage-card-title">Basic details</div>
+                  <div className="adm-detail-list">
+                    <div className="adm-detail-row"><span className="adm-detail-row-label">Order #</span><span className="adm-detail-row-value">{detail.orderNumber ?? detail.id}</span></div>
+                    <div className="adm-detail-row"><span className="adm-detail-row-label">Order date</span><span className="adm-detail-row-value">{formatDate(detail.createdAt)}</span></div>
+                    <div className="adm-detail-row"><span className="adm-detail-row-label">Vendor</span><span className="adm-detail-row-value">{vendorName(detail)}</span></div>
+                    <div className="adm-detail-row"><span className="adm-detail-row-label">Place of supply</span><span className="adm-detail-row-value">{detail.placeOfSupply ?? "—"}</span></div>
+                    <div className="adm-detail-row"><span className="adm-detail-row-label">GST type</span><span className="adm-detail-row-value">{detail.gstBreakup?.type ?? "—"}</span></div>
+                  </div>
+                </div>
+                </div>
+
+                {(detail.items?.length ?? 0) > 0 && (
                     <div className="adm-fullpage-card">
                       <div className="adm-fullpage-card-title">
                         Items <span style={{ fontWeight: 400, color: "var(--color-neutral-600)" }}>({detail.items!.length})</span>
                       </div>
-                      <div className="adm-order-items-scroll">
-                        {detail.items!.map((it) => {
-                          const thumb = it.product?.images?.[0]?.url;
-                          return (
-                            <div key={it.id} className="adm-order-item-card">
-                              <div className="adm-order-item-thumb">
-                                {thumb && (
-                                  // eslint-disable-next-line @next/next/no-img-element
-                                  <img src={fileUrl(thumb)} alt="" />
-                                )}
-                              </div>
-                              <div className="adm-order-item-body">
-                                <div style={{ fontWeight: 700, marginBottom: 10 }}>{it.product?.title ?? it.product?.name ?? "—"}</div>
-                                <FieldGrid>
-                                  <Field label="Qty" value={String(it.quantity)} />
-                                  <Field label="MRP" value={it.mrpAtPurchase != null ? money(Number(it.mrpAtPurchase)) : "—"} />
-                                  <Field label="Base price" value={it.basePrice != null ? money(Number(it.basePrice)) : "—"} />
-                                  <Field label="GST %" value={it.gstPercent != null ? `${Number(it.gstPercent)}%` : "—"} />
-                                  <Field label="GST amt" value={it.gstAmount != null ? money(Number(it.gstAmount)) : "—"} />
-                                  <Field label="Total" value={money(Number(it.lineTotal ?? 0))} />
-                                </FieldGrid>
-                              </div>
-                            </div>
-                          );
-                        })}
+                      <div className="adm-items-table-wrap">
+                        <table className="table">
+                          <thead>
+                            <tr>
+                              <th>Product</th>
+                              <th className="num">Qty</th>
+                              <th className="num">Price / Unit</th>
+                              <th className="num">GST</th>
+                              <th className="num">Total</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {detail.items!.map((it) => {
+                              const thumb = it.product?.images?.[0]?.url;
+                              return (
+                                <tr key={it.id}>
+                                  <td>
+                                    <div className="adm-item-product-cell">
+                                      <div className="adm-item-thumb">
+                                        {thumb && (
+                                          // eslint-disable-next-line @next/next/no-img-element
+                                          <img src={fileUrl(thumb)} alt="" />
+                                        )}
+                                      </div>
+                                      <span>{it.product?.title ?? it.product?.name ?? "—"}</span>
+                                    </div>
+                                  </td>
+                                  <td className="num">{it.quantity}</td>
+                                  <td className="num">{it.basePrice != null ? money(Number(it.basePrice)) : "—"}</td>
+                                  <td className="num">
+                                    {it.gstAmount != null ? money(Number(it.gstAmount)) : "—"}
+                                    {it.gstPercent != null && <span style={{ color: "var(--color-neutral-600)" }}> ({Number(it.gstPercent)}%)</span>}
+                                  </td>
+                                  <td className="num">{money(Number(it.lineTotal ?? 0))}</td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                      <div className="adm-price-rows adm-price-rows-bordered">
+                        <div className="adm-price-row"><span>Subtotal</span><span>{money(Number(detail.subtotal ?? 0))}</span></div>
+                        {detail.couponCode && (
+                          <div className="adm-price-row"><span>Coupon ({detail.couponCode})</span><span>−{money(Number(detail.couponDiscount ?? 0))}</span></div>
+                        )}
+                        <div className="adm-price-row">
+                          <span>
+                            GST
+                            {detail.gstBreakup && (
+                              <span style={{ color: "var(--color-neutral-600)", fontSize: 12.5 }}>
+                                {" "}({detail.gstBreakup.type === "IGST" ? "IGST" : "CGST + SGST"})
+                              </span>
+                            )}
+                          </span>
+                          <span>{money(Number(detail.gstAmount ?? 0))}</span>
+                        </div>
+                        <div className="adm-price-row"><span>Total</span><span>{money(Number(detail.totalAmount ?? 0))}</span></div>
                       </div>
                     </div>
                   )}
 
-                  <div className="adm-fullpage-card">
-                    <Timeline events={timeline.map((t) => ({ label: displayStatus(String(t.status ?? "Event")), at: String(t.createdAt ?? ""), by: t.note ? String(t.note) : undefined }))} />
-                  </div>
-
-                  <div className="adm-fullpage-card">
-                    <NotesThread
-                      notes={detail.notes ?? []}
-                      draft={note}
-                      onDraftChange={setNote}
-                      onAdd={() => runAction(() => ordersApi.addNote(detail.id, note), "Note added.").then(() => setNote(""))}
-                    />
-                  </div>
+                <div className="adm-fullpage-card adm-no-print">
+                  <Timeline events={timeline.map((t) => ({ label: displayStatus(String(t.status ?? "Event")), at: String(t.createdAt ?? ""), by: t.note ? String(t.note) : undefined }))} />
                 </div>
 
-                <div className="adm-fullpage-side">
-                  <div className="adm-fullpage-card">
-                    <div className="adm-fullpage-card-title">Update status</div>
-                    <div style={{ display: "flex", gap: 8 }}>
-                      <select className="input" value={nextStatus} onChange={(e) => setNextStatus(e.target.value)}>
-                        {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{s}</option>)}
-                      </select>
-                      <button type="button" className="btn btn-secondary" onClick={() => runAction(() => ordersApi.setStatus(detail.id, nextStatus), "Status updated.")}>Update</button>
-                    </div>
-                  </div>
-
-                  <div className="adm-fullpage-card">
-                    <div className="adm-fullpage-card-title">Order summary</div>
-                    <FieldGrid>
-                      <Field label="Vendor" value={vendorName(detail)} />
-                      <Field label="Place of supply" value={detail.placeOfSupply ?? "—"} />
-                      <Field
-                        label="GST type"
-                        value={
-                          !detail.gstBreakup
-                            ? "—"
-                            : detail.gstBreakup.type === "IGST"
-                              ? `IGST (${money(Number(detail.gstBreakup.igst ?? 0))})`
-                              : `CGST + SGST (${money(Number(detail.gstBreakup.cgst ?? 0))} + ${money(Number(detail.gstBreakup.sgst ?? 0))})`
-                        }
-                      />
-                    </FieldGrid>
-                    <div className="adm-price-rows" style={{ marginTop: 16 }}>
-                      <div className="adm-price-row"><span>Subtotal</span><span>{money(Number(detail.subtotal ?? 0))}</span></div>
-                      {detail.couponCode && (
-                        <div className="adm-price-row"><span>Coupon ({detail.couponCode})</span><span>−{money(Number(detail.couponDiscount ?? 0))}</span></div>
-                      )}
-                      <div className="adm-price-row"><span>GST</span><span>{money(Number(detail.gstAmount ?? 0))}</span></div>
-                      <div className="adm-price-row"><span>Total</span><span>{money(Number(detail.totalAmount ?? 0))}</span></div>
-                    </div>
-                  </div>
-
-                  <div className="adm-fullpage-card">
-                    <div className="adm-fullpage-card-title">Customer</div>
-                    <FieldGrid>
-                      <Field label="Name" value={detail.user?.name ?? "—"} />
-                      <Field label="Email" value={detail.user?.email ?? "—"} />
-                      <Field label="Mobile" value={detail.user?.mobileNumber ?? "—"} />
-                    </FieldGrid>
-                    <div style={{ marginTop: 14, display: "flex", flexDirection: "column", gap: 14 }}>
-                      <Field label="Shipping address" value={formatAddress(detail.shippingAddress)} />
-                      <Field label="Billing address" value={formatAddress(detail.billingAddress)} />
-                    </div>
-                  </div>
+                <div className="adm-fullpage-card">
+                  <NotesThread
+                    notes={detail.notes ?? []}
+                    draft={note}
+                    onDraftChange={setNote}
+                    onAdd={() => runAction(() => ordersApi.addNote(detail.id, note), "Note added.").then(() => setNote(""))}
+                  />
                 </div>
               </div>
             </div>

@@ -4,17 +4,18 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { myOrders, returns, ApiError, type MyOrder, type MyReturnRequest, type ReturnRequestType } from "@/lib/api";
 
-const inr = (n: number | string) => "₹ " + Math.round(Number(n)).toLocaleString("en-IN");
+const inr = (n: number | string) => "₹" + Math.round(Number(n)).toLocaleString("en-IN");
 
+// Checkout orders are auto-approved (no manual review step), so the
+// tracker starts at Approved — there's no "Pending Review" stage to show.
 const STEPS: Record<string, number> = {
-  pending: 0,
-  approved: 1,
-  processing: 2,
-  shipped: 2,
-  delivered: 3,
-  completed: 3,
+  approved: 0,
+  processing: 1,
+  shipped: 1,
+  delivered: 2,
+  completed: 2,
 };
-const STEP_LABELS = ["Pending Review", "Approved", "Processing", "Delivered"];
+const STEP_LABELS = ["Approved", "Processing", "Delivered"];
 const RETURN_ELIGIBLE_STATUSES = ["delivered", "completed"];
 
 export default function OrderDetailPage() {

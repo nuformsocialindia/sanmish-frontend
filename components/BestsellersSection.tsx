@@ -44,7 +44,7 @@ export default function BestsellersSection({
                 <div className="bs-price">
                   <b>{item.priceLabel}</b>
                   {item.mrp != null && item.priceValue != null && item.mrp > item.priceValue && (
-                    <s>{"₹ " + item.mrp.toLocaleString("en-IN")}</s>
+                    <s>{"₹" + item.mrp.toLocaleString("en-IN")}</s>
                   )}
                   {item.discountPercent != null && item.discountPercent > 0 && (
                     <span className="save">{Math.round(item.discountPercent)}% off</span>

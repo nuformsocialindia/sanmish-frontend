@@ -47,7 +47,7 @@ export type ProductDetail = {
   warrantyText?: string | null;
 };
 
-const inr = (n: number) => "₹ " + n.toLocaleString("en-IN");
+const inr = (n: number) => "₹" + n.toLocaleString("en-IN");
 
 // Generic placeholder used when an API product has no images yet.
 const FALLBACK_ICON = `<svg viewBox="0 0 120 120" fill="none" stroke="#3E79BD" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><rect x="30" y="30" width="60" height="60" rx="10"/><path d="M30 30 60 46 90 30M60 46v44"/></svg>`;

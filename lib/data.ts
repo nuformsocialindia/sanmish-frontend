@@ -101,17 +101,17 @@ export const ICONS = {
 };
 
 export const NEW_ARRIVALS = [
-  { t: "Digital Pressure Gauge", p: "₹ 3,499", ic: ICONS.gauge },
-  { t: "LED Zone Light", p: "₹ 2,150", ic: ICONS.panel },
-  { t: "Gas Leak Sensor", p: "₹ 4,899", ic: ICONS.sensor },
-  { t: "On-Grid Solar Inverter", p: "₹ 41,583", ic: ICONS.breaker },
+  { t: "Digital Pressure Gauge", p: "₹3,499", ic: ICONS.gauge },
+  { t: "LED Zone Light", p: "₹2,150", ic: ICONS.panel },
+  { t: "Gas Leak Sensor", p: "₹4,899", ic: ICONS.sensor },
+  { t: "On-Grid Solar Inverter", p: "₹41,583", ic: ICONS.breaker },
 ];
 
 export const BEST_SELLING = [
-  { t: "Safety Footwear (S3)", p: "₹ 1,320", ic: ICONS.boot },
-  { t: "High-Pressure Regulator", p: "₹ 5,650", ic: ICONS.regulator },
-  { t: "Welding Electrodes", p: "₹ 1,180", ic: ICONS.pipe },
-  { t: "Miniature Circuit Breaker", p: "₹ 471", ic: ICONS.breaker },
+  { t: "Safety Footwear (S3)", p: "₹1,320", ic: ICONS.boot },
+  { t: "High-Pressure Regulator", p: "₹5,650", ic: ICONS.regulator },
+  { t: "Welding Electrodes", p: "₹1,180", ic: ICONS.pipe },
+  { t: "Miniature Circuit Breaker", p: "₹471", ic: ICONS.breaker },
 ];
 
 export const DEALS = [
@@ -121,14 +121,14 @@ export const DEALS = [
 ];
 
 export const BESTSELLERS = [
-  { t: "Twin-Cylinder Gas Compressor", r: "4.8", rv: "35 Reviews", p: "₹ 1,41,900", s: "₹ 3,59,000", off: "60% OFF", ic: ICONS.regulator },
-  { t: "FR PVC Power Cable — Red", r: "4.7", rv: "249 Reviews", p: "₹ 4,690", s: "₹ 16,000", off: "70% OFF", ic: ICONS.cable },
-  { t: "Digital Gas Analyser", r: "4.9", rv: "92 Reviews", p: "₹ 5,420", s: "₹ 8,490", off: "36% OFF", ic: ICONS.meter },
-  { t: "Cascade Storage Module", r: "4.9", rv: "21 Reviews", p: "₹ 42,990", s: "₹ 1,05,000", off: "59% OFF", ic: ICONS.sensor },
-  { t: "CNG Dispenser Head Unit", r: "4.7", rv: "125 Reviews", p: "₹ 19,690", s: "₹ 49,900", off: "60% OFF", ic: ICONS.gauge },
-  { t: "Priority Panel Assembly", r: "4.7", rv: "56 Reviews", p: "₹ 59,490", s: "₹ 1,00,000", off: "40% OFF", ic: ICONS.breaker },
-  { t: "Rotary Screw Compressor", r: "4.6", rv: "63 Reviews", p: "₹ 26,990", s: "₹ 70,000", off: "61% OFF", ic: ICONS.drill },
-  { t: "Industrial Ball Valve", r: "4.5", rv: "110 Reviews", p: "₹ 8,790", s: "₹ 27,400", off: "67% OFF", ic: ICONS.valve },
+  { t: "Twin-Cylinder Gas Compressor", r: "4.8", rv: "35 Reviews", p: "₹1,41,900", s: "₹3,59,000", off: "60% OFF", ic: ICONS.regulator },
+  { t: "FR PVC Power Cable — Red", r: "4.7", rv: "249 Reviews", p: "₹4,690", s: "₹16,000", off: "70% OFF", ic: ICONS.cable },
+  { t: "Digital Gas Analyser", r: "4.9", rv: "92 Reviews", p: "₹5,420", s: "₹8,490", off: "36% OFF", ic: ICONS.meter },
+  { t: "Cascade Storage Module", r: "4.9", rv: "21 Reviews", p: "₹42,990", s: "₹1,05,000", off: "59% OFF", ic: ICONS.sensor },
+  { t: "CNG Dispenser Head Unit", r: "4.7", rv: "125 Reviews", p: "₹19,690", s: "₹49,900", off: "60% OFF", ic: ICONS.gauge },
+  { t: "Priority Panel Assembly", r: "4.7", rv: "56 Reviews", p: "₹59,490", s: "₹1,00,000", off: "40% OFF", ic: ICONS.breaker },
+  { t: "Rotary Screw Compressor", r: "4.6", rv: "63 Reviews", p: "₹26,990", s: "₹70,000", off: "61% OFF", ic: ICONS.drill },
+  { t: "Industrial Ball Valve", r: "4.5", rv: "110 Reviews", p: "₹8,790", s: "₹27,400", off: "67% OFF", ic: ICONS.valve },
 ];
 
 export const CITIES = ["Delhi-NCR", "Bengaluru", "Chennai", "Indore", "Mumbai", "Ahmedabad", "Kolkata", "Pune", "Jaipur", "Chandigarh", "Hyderabad", "Surat", "Lucknow", "Coimbatore", "Vadodara"];

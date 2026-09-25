@@ -149,7 +149,7 @@ export default function AdminPagesPage() {
                 <div className="field">
                   <label>Status</label>
                   <select className="input" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value as (typeof STATUSES)[number] })}>
-                    {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+                    {STATUSES.map((s) => <option key={s} value={s}>{s.toUpperCase()}</option>)}
                   </select>
                 </div>
                 <div className="field full">

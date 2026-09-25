@@ -13,7 +13,7 @@ import ShareMenu from "@/components/ShareMenu";
 import ProductImageZoom from "@/components/ProductImageZoom";
 import ProductGalleryLightbox from "@/components/ProductGalleryLightbox";
 
-const inr = (n: number) => "₹ " + n.toLocaleString("en-IN", { maximumFractionDigits: 2 });
+const inr = (n: number) => "₹" + n.toLocaleString("en-IN", { maximumFractionDigits: 2 });
 
 // Whitelisted icon set for trust badges — admins pick a key (never raw
 // markup) so a badge's `icon` field can never inject arbitrary HTML. Keys

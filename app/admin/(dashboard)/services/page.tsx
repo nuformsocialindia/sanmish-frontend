@@ -163,7 +163,7 @@ export default function AdminServicesPage() {
                 <div className="field">
                   <label>Status</label>
                   <select className="input" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value as (typeof STATUSES)[number] })}>
-                    {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+                    {STATUSES.map((s) => <option key={s} value={s}>{s.toUpperCase()}</option>)}
                   </select>
                 </div>
                 <div className="field full"><label className="check"><input type="checkbox" checked={form.enquiryFormEnabled} onChange={(e) => setForm({ ...form, enquiryFormEnabled: e.target.checked })} /> Show enquiry form on this service page</label></div>

@@ -8,7 +8,7 @@ import { slugify } from "@/lib/slug";
 import { getAllProducts } from "@/lib/productLookup";
 import SimilarProductCard from "@/components/SimilarProductCard";
 
-const inr = (n: number) => "₹ " + n.toLocaleString("en-IN", { maximumFractionDigits: 2 });
+const inr = (n: number) => "₹" + n.toLocaleString("en-IN", { maximumFractionDigits: 2 });
 const GST_RATE = 0.05;
 
 export default function CartPage() {

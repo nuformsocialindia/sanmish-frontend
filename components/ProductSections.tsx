@@ -40,7 +40,7 @@ export function normalizeApiProducts(apiProducts: ApiProductSummary[]): DisplayP
     title: p.title,
     category: p.category?.name ?? p.fuelType,
     seller: p.vendor?.businessName ?? "Verified Seller",
-    priceLabel: p.quoteOnly || p.sellingPrice == null ? "On Request" : "₹ " + p.sellingPrice.toLocaleString("en-IN"),
+    priceLabel: p.quoteOnly || p.sellingPrice == null ? "On Request" : "₹" + p.sellingPrice.toLocaleString("en-IN"),
     priceValue: p.sellingPrice,
     mrp: p.mrp,
     discountPercent: p.discountPercent,
@@ -165,7 +165,7 @@ export function CategoryGrid({ apiCategories = [] }: { apiCategories?: ApiCatego
   if (categories.length === 0) return null;
 
   return (
-    <section className="section" id="categories" style={{ paddingTop: 20 }}>
+    <section className="section" id="categories" style={{ paddingTop: 20, paddingBottom: 44 }}>
       <div className="wrap">
         <div className="section-head">
           <span className="eyebrow reveal"><span className="dot" />Browse the Marketplace</span>
@@ -224,7 +224,7 @@ export function FeaturedProducts({
   if (products.length === 0) return null;
 
   return (
-    <section className="section" id="products" style={{ background: "linear-gradient(180deg,var(--bg),#fff)" }}>
+    <section className="section" id="products" style={{ paddingTop: 44, background: "linear-gradient(180deg,var(--bg),#fff)" }}>
       <div className="wrap">
         <div className="section-head">
           <span className="eyebrow reveal"><span className="dot" />Handpicked Listings</span>

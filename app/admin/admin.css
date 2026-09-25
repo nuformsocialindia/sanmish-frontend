@@ -65,7 +65,7 @@
   color: var(--color-text);
   font-family: var(--font-body);
   min-height: 100vh;
-  font-size: 15px;
+  font-size: 17.5px;
   line-height: 1.55;
 }
 .adm-root * { box-sizing: border-box; }
@@ -157,8 +157,8 @@
 /* — tags / status chips — */
 .adm-root .tag {
   display: inline-flex; align-items: center; font-size: 11px;
-  letter-spacing: 0.02em; padding: 3px 12px; white-space: nowrap;
-  border-radius: 999px;
+  letter-spacing: 0.04em; padding: 3px 12px; white-space: nowrap;
+  border-radius: 999px; text-transform: uppercase; font-weight: 700;
 }
 .adm-root .tag-positive { background: var(--color-accent-2-200); color: var(--color-accent-2-800); }
 .adm-root .tag-attention { background: var(--color-accent-200); color: var(--color-accent-800); }
@@ -169,7 +169,7 @@
 /* — table — */
 .adm-root .table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 720px; }
 .adm-root .table th {
-  text-align: left; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+  text-align: left; font-size: 12.5px; font-weight: 700; letter-spacing: 0.02em;
   color: color-mix(in srgb, var(--color-text) 60%, transparent);
   padding: var(--space-2); border-bottom: 1px solid var(--color-divider); white-space: nowrap;
 }
@@ -368,24 +368,51 @@
   background: var(--color-bg);
 }
 .adm-fullpage-head {
-  padding: 22px 40px; border-bottom: 1px solid var(--color-divider); background: var(--color-surface);
+  padding: 18px 32px; border-bottom: 1px solid var(--color-divider); background: var(--color-surface);
   display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; flex-wrap: wrap;
 }
 .adm-fullpage-kicker { font-size: 12px; letter-spacing: .07em; text-transform: uppercase; color: var(--color-accent); font-weight: 700; }
-.adm-fullpage-title { font-family: var(--font-heading); font-size: 30px; line-height: 1.2; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.adm-fullpage-title { font-family: var(--font-heading); font-size: 28px; line-height: 1.2; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
 .adm-fullpage-sub { font-size: 14px; color: var(--color-neutral-700); margin-top: 4px; }
-.adm-fullpage-actions { display: flex; align-items: flex-start; gap: 10px; flex-wrap: wrap; }
-.adm-fullpage-body { flex: 1; overflow-y: auto; padding: 32px 40px 48px; }
+.adm-fullpage-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.adm-status-select { width: auto; min-width: 150px; }
+.adm-fullpage-body { flex: 1; overflow-y: auto; padding: 24px 32px 36px; }
 .adm-fullpage-grid { display: grid; grid-template-columns: 1fr 380px; gap: 28px; align-items: start; }
 @media (max-width: 960px) { .adm-fullpage-grid { grid-template-columns: 1fr; } }
 .adm-fullpage-main, .adm-fullpage-side { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
-.adm-fullpage-card { padding: 22px 26px; border-radius: var(--radius-lg); background: var(--color-surface); }
-.adm-fullpage-card-title { font-size: 15px; font-weight: 700; color: var(--color-text); margin-bottom: 16px; }
+/* Single-column detail layout (Orders print view) — one stacked reading
+   column instead of the main/sidebar split, centered like a document. */
+.adm-fullpage-single { display: flex; flex-direction: column; gap: 14px; max-width: 1060px; margin: 0 auto; }
+.adm-fullpage-card { padding: 18px 22px; border-radius: var(--radius-lg); background: var(--color-surface); }
+.adm-fullpage-card-title { font-size: 15px; font-weight: 700; color: var(--color-text); margin-bottom: 12px; }
+
+/* Two cards side by side (Customer + Basic details) instead of each taking
+   the full width on its own — fills the row instead of reading as two
+   sparse, disconnected blocks. */
+.adm-detail-row-group { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media screen and (max-width: 800px) { .adm-detail-row-group { grid-template-columns: 1fr; } }
+
+/* Name + Email side by side instead of stacked — on screen this is just a
+   pass-through wrapper (display: contents), so it doesn't change the normal
+   stacked flow there; only print collapses it into one compact row. */
+.adm-info-row-pair { display: contents; }
+
+/* Single-column label/value rows — one horizontal divider per row, no
+   vertical column separators (used for Basic details). */
+.adm-detail-list { display: flex; flex-direction: column; }
+.adm-detail-row { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding: 9px 0; border-bottom: 1px solid var(--color-divider); }
+.adm-detail-row:last-child { border-bottom: none; }
+.adm-detail-row-label { font-size: 13px; color: var(--color-neutral-600); font-weight: 600; }
+.adm-detail-row-value { font-size: 14px; font-weight: 600; color: var(--color-text); text-align: right; }
+
 
 /* Itemized price summary (Subtotal / GST / Total, each its own row) */
 .adm-price-rows { display: flex; flex-direction: column; }
 .adm-price-row { display: flex; justify-content: space-between; align-items: baseline; padding: 9px 0; border-bottom: 1px solid var(--color-divider); font-size: 14px; }
 .adm-price-row:last-child { border-bottom: none; padding-top: 13px; font-size: 15.5px; font-weight: 700; color: var(--color-text); }
+/* Sits directly under an items table (Subtotal/GST/Total right below the
+   line items, invoice-style) instead of in its own sidebar card. */
+.adm-price-rows-bordered { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--color-divider); }
 
 /* Order items — a long cart shouldn't blow up the whole page, so the list
    scrolls inside a capped-height area instead of pushing everything below
@@ -397,6 +424,22 @@
 .adm-order-item-thumb { width: 56px; height: 56px; border-radius: var(--radius-md); overflow: hidden; background: var(--color-neutral-200); flex-shrink: 0; display: grid; place-items: center; color: var(--color-neutral-500); }
 .adm-order-item-thumb img { width: 100%; height: 100%; object-fit: cover; }
 .adm-order-item-body { flex: 1; min-width: 0; }
+
+/* Compact items table — one row per line item instead of a stacked card,
+   so a multi-item order reads at a glance like a real invoice. */
+.adm-items-table-wrap { overflow-x: auto; }
+.adm-item-product-cell { display: flex; align-items: center; gap: 10px; }
+.adm-item-thumb { width: 38px; height: 38px; border-radius: var(--radius-sm); overflow: hidden; background: var(--color-neutral-200); flex-shrink: 0; display: grid; place-items: center; color: var(--color-neutral-500); }
+.adm-item-thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+/* Customer info as an icon + label/value list, matching the compact
+   "Customer Information" panel pattern instead of a 2-column field grid. */
+.adm-info-row { display: flex; gap: 12px; align-items: flex-start; padding: 11px 0; border-bottom: 1px solid var(--color-divider); }
+.adm-info-row:last-child { border-bottom: none; padding-bottom: 0; }
+.adm-info-row:first-child { padding-top: 0; }
+.adm-info-icon { width: 32px; height: 32px; border-radius: 8px; background: var(--color-neutral-200); color: var(--color-neutral-700); flex-shrink: 0; display: grid; place-items: center; }
+.adm-info-label { font-size: 12px; font-weight: 600; letter-spacing: .01em; color: var(--color-neutral-600); display: block; margin-bottom: 2px; }
+.adm-info-value { font-size: 14px; font-weight: 600; color: var(--color-text); }
 
 /* ══════════════════ Detail drawer ══════════════════ */
 .adm-drawer-backdrop {
@@ -427,7 +470,13 @@
 }
 .adm-field-item { padding: 10px 14px; border-bottom: 1px solid var(--color-divider); }
 .adm-field-item:nth-child(odd) { border-right: 1px solid var(--color-divider); }
-.adm-field-item-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--color-text); display: block; margin-bottom: 4px; }
+/* Wide variant — a horizontal strip of short fields (order date, payment
+   method, vendor, ...) instead of the default 2-column label/value stack. */
+.adm-field-grid-wide { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+.adm-field-grid-wide .adm-field-item:nth-child(odd) { border-right: 1px solid var(--color-divider); }
+.adm-field-grid-wide .adm-field-item { border-right: 1px solid var(--color-divider); }
+.adm-field-grid-wide .adm-field-item:last-child { border-right: none; }
+.adm-field-item-label { font-size: 12.5px; font-weight: 700; letter-spacing: .01em; color: var(--color-text); display: block; margin-bottom: 4px; }
 .adm-field-item-value { font-size: 14.5px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .adm-micro-btn { padding: 4px 12px; font-size: 12px; border-radius: 999px; border: 1px solid var(--color-divider); background: none; cursor: pointer; color: var(--color-accent); font-family: var(--font-body); }
 .adm-micro-btn:hover { background: color-mix(in srgb, var(--color-accent) 10%, transparent); }
@@ -594,3 +643,96 @@
   .adm-form-grid.cols-2, .adm-form-grid.cols-3, .adm-form-grid.cols-4 { grid-template-columns: 1fr; }
   .adm-field-grid { grid-template-columns: 1fr; }
 }
+
+/* Print — a compact one-page order document (no nav, no chrome, no edit
+   controls, no card backgrounds/shadows), not the on-screen modal shrunk
+   down. Every block is tightened specifically for print so a typical order
+   fits a single sheet instead of spilling across three near-empty pages. */
+@media print {
+  @page { margin: 14mm 16mm; size: auto; }
+  /* display:none (not visibility:hidden) so hidden chrome stops reserving
+     layout space — a hidden-but-still-100vh sidebar/topbar is exactly what
+     was padding this out to three near-blank pages. */
+  .adm-root, .adm-shell, .adm-main, .adm-content { min-height: 0 !important; }
+  .adm-shell { grid-template-columns: 1fr !important; }
+  .adm-sidebar, .adm-topbar { display: none !important; }
+  .adm-list-block > *:not(.adm-fullpage-backdrop) { display: none !important; }
+  .adm-content { padding: 0 !important; }
+
+  .adm-fullpage-backdrop { position: static; inset: auto; background: #fff; box-shadow: none; }
+  /* Drop the floating-card shadow/rounded corners (elev-lg) — on a real
+     printed sheet that reads as a second page peeking out from behind the
+     first, not a card. Print should just be flat white page content. */
+  /* !important because the panel also carries .elev-lg on screen
+     (`.adm-root .elev-lg`, two classes) which otherwise outranks this
+     single-class rule regardless of source order and keeps the shadow —
+     exactly what read as "a page behind the page" on paper. */
+  /* A light frame around the whole document — the header rule, section
+     rules and table borders below are all full-width within this same
+     padding, so they run edge-to-edge and meet the frame flush on both
+     sides instead of stopping short of it. */
+  .adm-fullpage-panel { position: static; width: auto; height: auto; overflow: visible; background: #fff; box-shadow: none !important; border-radius: 6px !important; border: 1px solid #E4E8ED; padding: 22px 26px 28px; }
+  .adm-fullpage-actions, .adm-note-input-row { display: none !important; }
+
+  /* Letterhead: name/order on the left, status on the right, one rule
+     underneath — a document header, not a dashboard toolbar. */
+  .adm-fullpage-head { display: flex; padding: 0 0 14px; margin-bottom: 20px; background: none; border-bottom: 2px solid #1F2937; }
+  .adm-fullpage-kicker { font-size: 10px; }
+  .adm-fullpage-title { font-size: 22px; gap: 10px; }
+  .adm-fullpage-sub { font-size: 11px; margin-top: 3px; }
+  .adm-fullpage-body { overflow: visible; padding: 0; }
+  .adm-fullpage-single { gap: 22px; max-width: none; }
+
+  .adm-detail-row-group { grid-template-columns: 1fr 1fr !important; gap: 40px; }
+
+  /* Cards become plain sections — a small uppercase label with one rule
+     under it, not a bordered/shaded box. Stacking several bordered boxes
+     is what read as "too many lines"; a document reads top-to-bottom. */
+  .adm-fullpage-card { background: none; border: none; border-radius: 0; padding: 0; break-inside: avoid; }
+  .adm-fullpage-card-title {
+    font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em;
+    color: #6B7280; padding-bottom: 6px; margin-bottom: 10px; border-bottom: 1px solid #1F2937;
+  }
+  .adm-fullpage-card:has(.adm-empty-msg) { display: none; }
+  .adm-no-print { display: none !important; }
+
+  /* No icon avatars and no hairline under every single field — generous
+     spacing between fields does the separating instead of dozens of
+     thin rules. */
+  .adm-info-icon { display: none !important; }
+  .adm-info-row { border-bottom: none; padding: 5px 0; gap: 0; }
+  .adm-info-label, .adm-detail-row-label { font-size: 9px; color: #6B7280; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+  .adm-info-value, .adm-detail-row-value { font-size: 12px; margin-top: 1px; }
+  .adm-detail-row { border-bottom: none; padding: 5px 0; }
+
+  /* Name + Email become one compact row instead of two stacked ones. */
+  .adm-info-row-pair { display: flex; gap: 24px; padding: 5px 0; }
+  .adm-info-row-pair .adm-info-row { flex: 1; padding: 0; }
+
+  /* A real invoice table — shaded header row, ruled rows, no thumbnails
+     (they don't add anything on paper and just cluttered the row). The
+     screen table also has a 720px min-width for horizontal scrolling on
+     narrow admin viewports; in print there's no scrolling, so that
+     min-width just clipped the right-hand columns off the page. */
+  .adm-items-table-wrap { overflow: visible; }
+  .adm-items-table-wrap .table { min-width: 0; width: 100%; table-layout: fixed; border-collapse: collapse; }
+  .adm-items-table-wrap .table thead tr { background: #F1F4F8; }
+  .adm-items-table-wrap .table th {
+    font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: #4B5563;
+    padding: 8px 10px; border-bottom: 1.5px solid #1F2937;
+  }
+  .adm-items-table-wrap .table td { padding: 9px 10px; font-size: 11.5px; border-bottom: 1px solid #E4E8ED; overflow-wrap: break-word; }
+  .adm-items-table-wrap .table tr:last-child td { border-bottom: none; }
+  .adm-items-table-wrap .table th:nth-child(1), .adm-items-table-wrap .table td:nth-child(1) { width: 36%; }
+  .adm-items-table-wrap .table th:nth-child(2), .adm-items-table-wrap .table td:nth-child(2) { width: 10%; }
+  .adm-items-table-wrap .table th:nth-child(4), .adm-items-table-wrap .table td:nth-child(4) { width: 22%; white-space: nowrap; }
+  .adm-item-thumb { display: none !important; }
+  .adm-item-product-cell span { font-weight: 500; }
+
+  .adm-price-rows-bordered { margin-top: 0; padding-top: 14px; border-top: 1.5px solid #1F2937; }
+  .adm-price-row { border-bottom: none; padding: 5px 0; font-size: 11.5px; }
+  .adm-price-row:last-child { padding-top: 10px; margin-top: 4px; border-top: 1px solid #1F2937; font-size: 15px; }
+
+  .adm-timeline, .adm-notes-list { font-size: 10.5px; }
+}
+

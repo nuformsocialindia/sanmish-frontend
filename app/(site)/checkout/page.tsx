@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useAddresses } from "@/lib/address-context";
 import { checkout as checkoutApi, enquiries, ApiError } from "@/lib/api";
 
-const inr = (n: number) => "₹ " + n.toLocaleString("en-IN");
+const inr = (n: number) => "₹" + n.toLocaleString("en-IN");
 
 const GST_RATE = 0.05;
 

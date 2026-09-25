@@ -46,7 +46,7 @@ function normalizeApiProducts(apiProducts: ApiProductSummary[]): CatalogueItem[]
 }
 
 const PER_PAGE = 9;
-const inr = (n: number) => "₹ " + n.toLocaleString("en-IN");
+const inr = (n: number) => "₹" + n.toLocaleString("en-IN");
 
 type SortKey = "relevance" | "low" | "high" | "name";
 const SORT_LABELS: Record<SortKey, string> = {

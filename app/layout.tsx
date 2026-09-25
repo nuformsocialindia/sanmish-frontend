@@ -43,7 +43,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body>{children}</body>
+      <body style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>{children}</body>
     </html>
   );
 }

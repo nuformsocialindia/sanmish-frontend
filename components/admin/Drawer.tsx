@@ -57,8 +57,8 @@ export default function Drawer({ kicker, title, subtitle, status, tabs, activeTa
   );
 }
 
-export function FieldGrid({ children }: { children: ReactNode }) {
-  return <div className="adm-field-grid">{children}</div>;
+export function FieldGrid({ children, wide }: { children: ReactNode; wide?: boolean }) {
+  return <div className={wide ? "adm-field-grid adm-field-grid-wide" : "adm-field-grid"}>{children}</div>;
 }
 
 export function Field({ label, value, action, actionLabel, onAction, actionDisabled }: {
@@ -86,7 +86,7 @@ export function NotesThread({ notes, draft, onDraftChange, onAdd }: {
       <div className="adm-section-label">Internal notes</div>
       <div className="adm-notes-list" style={{ marginBottom: 12 }}>
         {notes.length === 0 ? (
-          <p style={{ fontSize: 13, color: "var(--color-neutral-600)" }}>No notes yet.</p>
+          <p className="adm-empty-msg" style={{ fontSize: 13, color: "var(--color-neutral-600)" }}>No notes yet.</p>
         ) : notes.map((n, i) => (
           <div key={i} className="adm-note-item">
             {n.note ?? n.text}
@@ -108,7 +108,7 @@ export function Timeline({ events }: { events: { label?: string; status?: string
       <div className="adm-section-label">Timeline</div>
       <div className="adm-timeline">
         {events.length === 0 ? (
-          <p style={{ fontSize: 13, color: "var(--color-neutral-600)" }}>No timeline events yet.</p>
+          <p className="adm-empty-msg" style={{ fontSize: 13, color: "var(--color-neutral-600)" }}>No timeline events yet.</p>
         ) : events.map((e, i) => (
           <div key={i} className="adm-timeline-item">
             <div className="adm-timeline-dot-wrap">

@@ -12,7 +12,7 @@ const GST_RATES = [0, 5, 12, 18, 28];
 
 function money(value: number | string | null | undefined): string {
   const n = Number(value ?? 0);
-  return "₹ " + Math.round(n).toLocaleString("en-IN");
+  return "₹" + Math.round(n).toLocaleString("en-IN");
 }
 
 function gstPreview(sellingPrice: number, gstApplicable: boolean, gstRate: number, priceIncludesGst: boolean, mrp: number) {

@@ -196,7 +196,7 @@ export default function AdminLogisticsPage() {
                   <tr key={i}>
                     <td>{String((z.partner as Record<string, unknown> | undefined)?.name ?? "—")}</td>
                     <td>{String(z.pincodePrefix ?? "—")}</td>
-                    <td className="num">{z.charge != null ? `₹ ${Number(z.charge).toLocaleString("en-IN")}` : "—"}</td>
+                    <td className="num">{z.charge != null ? `₹${Number(z.charge).toLocaleString("en-IN")}` : "—"}</td>
                   </tr>
                 ))}
             </tbody>

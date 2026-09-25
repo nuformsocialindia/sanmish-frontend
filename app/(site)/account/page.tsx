@@ -7,7 +7,7 @@ import { useAddresses } from "@/lib/address-context";
 import { useWishlist } from "@/lib/wishlist-context";
 import { useCart } from "@/lib/cart-context";
 
-const inr = (n: number | string) => "₹ " + Math.round(Number(n)).toLocaleString("en-IN");
+const inr = (n: number | string) => "₹" + Math.round(Number(n)).toLocaleString("en-IN");
 
 export default function AccountDashboardPage() {
   const { user } = useAuth();
@@ -29,7 +29,7 @@ export default function AccountDashboardPage() {
 
   return (
     <div>
-      <h1 className="account-title">Welcome back{user?.name ? `, ${user.name.split(" ")[0]}` : ""}</h1>
+      <h1 className="account-title">Welcome{user?.name ? `, ${user.name.split(" ")[0]}` : ""}</h1>
       <p className="account-sub">Here&rsquo;s an overview of your SANMISH account.</p>
 
       <div className="account-stats">

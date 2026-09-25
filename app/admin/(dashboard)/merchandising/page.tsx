@@ -230,7 +230,7 @@ export default function AdminMerchandisingPage() {
                 <div className="field">
                   <label>Status</label>
                   <select className="input" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value as (typeof STATUSES)[number] })}>
-                    {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+                    {STATUSES.map((s) => <option key={s} value={s}>{s.toUpperCase()}</option>)}
                   </select>
                 </div>
                 <div className="field"><label>Publish from</label><input className="input" type="date" value={form.publishFrom} onChange={(e) => setForm({ ...form, publishFrom: e.target.value })} /></div>

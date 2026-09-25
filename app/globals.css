@@ -1509,15 +1509,21 @@ section[id] { scroll-margin-top: 76px; }
   background: var(--gray);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  padding: 20px;
+  padding: 16px;
 }
-.mini-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+/* No background/border on the deals column, but it still needs the same
+   16px top inset as the other two — otherwise its "Popular Deals" heading
+   sits higher than "New Arrivals"/"Hot Selling" and the header row doesn't
+   line up. */
+.showcase-col.deals { padding-top: 16px; }
+.mini-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 
 .mini-prod {
+  position: relative;
   background: #fff;
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
-  padding: 16px 14px 18px;
+  padding: 12px 12px 14px;
   text-align: center;
   transition: transform .3s var(--ease), box-shadow .3s;
   cursor: pointer;
@@ -1529,14 +1535,27 @@ section[id] { scroll-margin-top: 76px; }
 .mini-prod:hover { transform: translateY(-6px); box-shadow: var(--shadow); }
 
 .mini-thumb {
-  height: 118px;
+  position: relative;
+  height: 92px;
   border-radius: 12px;
   background: linear-gradient(160deg, #eef4f9, #e2edf6);
   display: grid;
   place-items: center;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
   overflow: hidden;
 }
+/* Sits closer to the thumbnail's top edge — the default .prod-wishlist
+   inset (tuned for the 180px Featured Equipment image) sat too low/large
+   on this smaller 92px thumbnail. */
+.mini-thumb .prod-wishlist { top: 4px; right: 4px; width: 26px; height: 26px; }
+.mini-thumb .prod-wishlist svg { width: 15px; height: 15px; }
+/* This card is much narrower than Featured Equipment's, so the
+   "Remove from wishlist" tooltip (right-anchored, nowrap) ran past the
+   thumbnail's left edge and got clipped by its own overflow:hidden. The
+   thumbnail image itself already carries border-radius:inherit, so
+   nothing relies on this clipping — safe to let the tooltip spill out. */
+.mini-thumb { overflow: visible; }
+.mini-thumb .prod-wishlist::after { right: -4px; font-size: 10.5px; }
 
 .mini-thumb svg { width: 64%; height: 64%; transition: transform .45s var(--ease); }
 .mini-prod:hover .mini-thumb svg { transform: scale(1.08); }
